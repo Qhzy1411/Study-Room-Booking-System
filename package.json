@@ -1,0 +1,33 @@
+{
+  "name": "study-room-booking-system",
+  "version": "1.0.0",
+  "description": "智慧自习室预约与管理系统（需求规格 V2.5.6 实现）",
+  "type": "module",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node --no-warnings server/index.js",
+    "dev": "node --no-warnings --watch server/index.js",
+    "seed": "node --no-warnings server/seed.js --reset",
+    "seed:perf": "node --no-warnings server/seed.js --reset --perf",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "vitest run tests/e2e",
+    "test:unit": "vitest run tests/unit"
+  },
+  "engines": {
+    "node": ">=22.5",
+    "pnpm": ">=9"
+  },
+  "dependencies": {
+    "express": "^5.3.0",
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^5.1.0",
+    "happy-dom": "^21.0.4",
+    "playwright-core": "^1.65.0",
+    "vitest": "^5.1.0"
+  },
+  "packageManager": "pnpm@10.33.0"
+}
