@@ -1,5 +1,5 @@
 import { api, newKey, ApiError } from './api.js';
-import { h, icon, openModal, toast } from './util.js';
+import { h, icon, openModal, toast, timeRangeText } from './util.js';
 
 /**
  * 桌面二维码签到对话框。
@@ -133,7 +133,7 @@ export function openScanDialog({ reservation, onSuccess = null }) {
     body: h('div', { class: 'scanner' },
       h('div', { class: 'notice' },
         h('strong', {}, `${reservation.roomName} ${reservation.seatCode} 座位`),
-        ` · ${reservation.startText}—${reservation.endText}`,
+        ` · ${timeRangeText(reservation.startText, reservation.endText)}`,
       ),
       h('div', { style: { position: 'relative' } }, frame, hint),
       status,

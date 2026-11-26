@@ -1,6 +1,6 @@
 import { setContent, roomText } from '../util.js';
 import { api, ApiError } from '../api.js';
-import { h, icon, toast, emptyState, plainBadge } from '../util.js';
+import { h, icon, toast, emptyState, plainBadge, inputField, timeRangeText } from '../util.js';
 
 const STATUS_TONE = { pending: 'blue', processing: 'amber', answered: 'green', closed: 'gray' };
 const TABS = [
@@ -165,7 +165,7 @@ export async function renderAdminComplaints(container, { navigate }) {
           c.isSite ? h('dt', {}, '现场座位') : null,
           c.isSite ? h('dd', {}, c.seatCode || '—') : null,
           c.reservation ? h('dt', {}, '关联预约') : null,
-          c.reservation ? h('dd', {}, `${c.reservation.seatCode} 座位 · ${c.reservation.startText}—${c.reservation.endText}`) : null,
+          c.reservation ? h('dd', {}, `${c.reservation.seatCode} 座位 · ${timeRangeText(c.reservation.startText, c.reservation.endText)}`) : null,
           c.violationId ? h('dt', {}, '关联违规') : null,
           c.violationId ? h('dd', {}, '已关联本人违规记录') : null,
           c.accusedName ? h('dt', {}, '回避') : null,
@@ -187,14 +187,11 @@ export async function renderAdminComplaints(container, { navigate }) {
           : null,
         c.status === 'processing'
           ? h('div', { class: 'stack' },
-            h('div', { class: 'field' },
-              h('label', {}, '答复及依据'),
-              h('textarea', {
-                rows: 4, maxlength: 2000, value: state.reply,
-                placeholder: '填写核实结果、处理依据和必要的纠正措施。',
-                on: { input: (event) => { state.reply = event.target.value; } },
-              }),
-            ),
+            inputField('答复及依据', h('textarea', {
+              rows: 4, maxlength: 2000, value: state.reply,
+              placeholder: '填写核实结果、处理依据和必要的纠正措施。',
+              on: { input: (event) => { state.reply = event.target.value; } },
+            })),
             c.isOccupancy ? h('label', { class: 'check' },
               h('input', {
                 type: 'checkbox', checked: state.occupancyUnfounded, disabled: state.busy,

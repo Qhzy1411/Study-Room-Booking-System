@@ -1,7 +1,7 @@
 import { setContent, roomText } from '../util.js';
 import { api, ApiError, qs } from '../api.js';
 import { store, beijingDate, beijingTime } from '../state.js';
-import { h, icon, toast, emptyState, plainBadge } from '../util.js';
+import { h, icon, toast, emptyState, plainBadge, timeRangeText } from '../util.js';
 import { barChart, lineChart } from '../charts.js';
 
 const REFRESH_MS = 10000;
@@ -173,7 +173,9 @@ export async function renderAdminStats(container, { navigate }) {
         h('div', { class: 'grow small muted', style: { paddingBottom: '10px' } },
           '留空表示按开放时段统计；页面可见时每 10 秒刷新。',
         ),
-        state.error ? h('span', { class: 'badge red plain' }, '更新失败，保留上次快照') : null,
+        state.error && data
+          ? h('span', { class: 'small danger-text', role: 'status' }, `更新失败：${state.error}。已保留上次快照。`)
+          : null,
         h('span', { class: 'small muted', style: { paddingBottom: '10px' } }, statusText),
       ),
       !state.roomId
@@ -191,11 +193,10 @@ export async function renderAdminStats(container, { navigate }) {
                     h('div', { class: 'row between' },
                       h('div', {},
                         h('h2', {}, `${data.room.name} · ${data.date}`),
-                        h('p', { class: 'card-sub' }, `${data.room.location} · 快照 ${data.snapshotText} · 窗口 ${data.metrics.window?.startText || '—'} — ${data.metrics.window?.endText || '—'}`),
+                        h('p', { class: 'card-sub' }, `${data.room.location} · 快照 ${data.snapshotText} · 窗口 ${timeRangeText(data.metrics.window?.startText, data.metrics.window?.endText)}`),
                       ),
                       h('div', { class: 'row' },
                         plainBadge(data.metrics.hasPlan ? `开放 ${data.metrics.plan.start}—${data.metrics.plan.end}` : '当日无开放计划', data.metrics.hasPlan ? 'blue' : 'gray'),
-                        state.error ? plainBadge('更新失败', 'red') : plainBadge('快照一致', 'green'),
                       ),
                     ),
                   ),
@@ -205,7 +206,6 @@ export async function renderAdminStats(container, { navigate }) {
                 h('section', { class: 'card' },
                   h('div', { class: 'card-head' },
                     h('h2', {}, '计算口径与说明'),
-                    h('span', { class: 'small muted' }, `数据是否过期：${state.error ? '是（保留上次成功快照）' : '否'}`),
                   ),
                   h('div', { class: 'card-body' },
                     h('div', { class: 'stack small', style: { color: 'var(--ink-soft)' } },

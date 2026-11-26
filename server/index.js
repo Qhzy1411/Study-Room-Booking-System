@@ -30,7 +30,7 @@ app.use('/api', (req, res) => {
   res.status(404).json({ error: { code: 'not_found', message: '接口不存在' } });
 });
 
-app.use(express.static(config.publicDir, { index: 'index.html', maxAge: '1h' }));
+app.use(express.static(config.publicDir, { index: 'index.html', maxAge: 0 }));
 app.use((req, res, next) => {
   if (req.method !== 'GET' && req.method !== 'HEAD') return next();
   if (req.path.startsWith('/api/')) return next();

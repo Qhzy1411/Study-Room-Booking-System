@@ -1,7 +1,7 @@
 import { setContent } from '../util.js';
 import { api, ApiError } from '../api.js';
 import { store, applyClock } from '../state.js';
-import { h, icon, toast, plainBadge } from '../util.js';
+import { h, icon, toast, plainBadge, inputField } from '../util.js';
 
 const ROLE_LABEL = { student: '学生', venue_admin: '场地管理员', sys_admin: '系统管理员' };
 
@@ -104,11 +104,10 @@ export async function renderProfile(container, { navigate }) {
               h('div', { class: 'row', style: { gap: '6px' } }, permissionLine()),
               h('div', { class: 'divider' }),
               h('div', { class: 'field' },
-                h('label', { for: 'profile-name' }, '显示名'),
-                h('input', {
+                inputField('显示名', h('input', {
                   id: 'profile-name', type: 'text', maxlength: 30, value: form.displayName,
                   on: { input: (event) => { form.displayName = event.target.value; } },
-                }),
+                })),
                 h('p', { class: 'field-hint' }, '用于页面展示。'),
               ),
               h('div', { class: 'field' },

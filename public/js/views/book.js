@@ -2,7 +2,7 @@ import { setContent, roomText } from '../util.js';
 import { api, newKey, qs, ApiError } from '../api.js';
 import { store, beijingDate, now, dateLabel, weekdayLabel, beijingTime } from '../state.js';
 import {
-  h, icon, toast, emptyState, openModal, durationText,
+  h, icon, toast, emptyState, openModal, durationText, inputField, requiredMark, timeRangeText,
 } from '../util.js';
 import { createSeatMap, seatMapLegend } from '../seatmap.js';
 
@@ -222,7 +222,7 @@ export async function renderBook(container, { navigate }) {
             h('dt', {}, '座位'),
             h('dd', {}, reservation.seatCode),
             h('dt', {}, '时段'),
-            h('dd', {}, `${reservation.startText} — ${reservation.endText}`),
+            h('dd', {}, timeRangeText(reservation.startText, reservation.endText)),
             h('dt', {}, '签到截止'),
             h('dd', {}, reservation.checkinDeadlineText),
             h('dt', {}, '签到宽限'),
@@ -268,20 +268,14 @@ export async function renderBook(container, { navigate }) {
           on: { change: (event) => changeDate(event.target.value) },
         }, state.context.dates.map((d) => h('option', { value: d.date, selected: d.date === state.filters.date }, `${dateLabel(d.date)} ${weekdayLabel(d.date)}`))),
       ),
-      h('div', { class: 'field' },
-        h('label', {}, '开始时间'),
-        h('input', {
-          type: 'time', step: 900, value: state.filters.start, min: plan?.start || '00:00', max: plan?.end || '23:59',
-          on: { change: (event) => { state.filters.start = event.target.value; invalidateResults(); } },
-        }),
-      ),
-      h('div', { class: 'field' },
-        h('label', {}, '结束时间'),
-        h('input', {
-          type: 'time', step: 900, value: state.filters.end, min: plan?.start || '00:00', max: plan?.end || '23:59',
-          on: { change: (event) => { state.filters.end = event.target.value; invalidateResults(); } },
-        }),
-      ),
+      inputField('开始时间', h('input', {
+        type: 'time', step: 900, value: state.filters.start, min: plan?.start || '00:00', max: plan?.end || '23:59',
+        on: { change: (event) => { state.filters.start = event.target.value; invalidateResults(); } },
+      })),
+      inputField('结束时间', h('input', {
+        type: 'time', step: 900, value: state.filters.end, min: plan?.start || '00:00', max: plan?.end || '23:59',
+        on: { change: (event) => { state.filters.end = event.target.value; invalidateResults(); } },
+      })),
       h('div', { class: 'field', style: { flex: '0 0 auto' } },
         h('label', {}, '必要条件'),
         h('label', { class: 'check', style: { minHeight: '40px', alignItems: 'center' } },
@@ -458,11 +452,14 @@ export async function renderBook(container, { navigate }) {
           : null,
         h('label', { class: 'check' },
           h('input', {
-            type: 'checkbox', checked: state.agreed,
+            type: 'checkbox', checked: state.agreed, required: true,
             on: { change: (event) => { state.agreed = event.target.checked; renderAll(); } },
           }),
-          h('span', { class: 'text' }, '我已阅读并同意预约规则，并确认所选座位与时段。'),
+          h('span', { class: 'text' }, '我已阅读并同意预约规则，并确认所选座位与时段。', requiredMark()),
         ),
+        seat && !state.agreed && data && !data.restricted
+          ? h('p', { class: 'small muted' }, '请先勾选预约规则确认项。')
+          : null,
         h('button', {
           class: 'btn primary block', type: 'button',
           disabled: state.busy || !seat || !state.agreed || !data || data.restricted,

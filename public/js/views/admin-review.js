@@ -2,7 +2,7 @@ import { setContent, roomText } from '../util.js';
 import { api, ApiError, qs } from '../api.js';
 import { store, beijingDate, beijingTime, now } from '../state.js';
 import {
-  h, icon, toast, emptyState, plainBadge, promptDialog, debounce,
+  h, icon, toast, emptyState, plainBadge, promptDialog, debounce, inputField, requiredMark, timeRangeText,
 } from '../util.js';
 
 const TABS = [
@@ -157,7 +157,10 @@ export async function renderAdminReview(container, { navigate }) {
   }
 
   async function submitFault() {
-    if (!state.roomId) return;
+    if (!state.roomId) {
+      toast('没有可用的场地授权', 'warn');
+      return;
+    }
     if (!state.fault.description.trim()) {
       toast('请填写故障影响与核实说明', 'warn');
       return;
@@ -219,7 +222,7 @@ export async function renderAdminReview(container, { navigate }) {
     }
   }
 
-  function studentPicker() {
+  function studentPicker(label = '被登记学生') {
     const resultsBox = h('div', { class: 'stack', style: { gap: '6px' } });
     const input = h('input', {
       type: 'search', placeholder: '输入学号、账号或姓名，例如 U01',
@@ -250,15 +253,13 @@ export async function renderAdminReview(container, { navigate }) {
       },
     });
     return h('div', { class: 'field' },
-      h('label', {}, '被登记学生'),
       state.student
         ? h('div', { class: 'row' },
           plainBadge(`${state.student.displayName}（${state.student.username}）`, 'blue'),
           h('button', { class: 'link-btn', type: 'button', on: { click: () => { state.student = null; state.limit.violationIds = new Set(); renderAll(); } } }, '清除'),
         )
-        : input,
+        : inputField(label, input),
       state.student ? null : resultsBox,
-      h('p', { class: 'field-hint' }, '只可按授权场地登记事实；系统不自动认定违规，需经复核后才生效。'),
     );
   }
 
@@ -275,7 +276,7 @@ export async function renderAdminReview(container, { navigate }) {
       h('div', { class: 'meta' },
         h('span', {}, `学生 ${v.userName}（${v.userId}）`),
         h('span', {}, `场地 ${v.roomName}`),
-        v.reservation ? h('span', {}, `预约时段 ${v.reservation.startText}—${v.reservation.endText}`) : null,
+        v.reservation ? h('span', {}, `预约时段 ${timeRangeText(v.reservation.startText, v.reservation.endText)}`) : null,
       ),
       h('div', { class: 'record-note' }, v.material || '—'),
       v.decisionReason ? h('div', { class: 'record-sub' }, `复核：${v.decisionReason}`) : null,
@@ -308,7 +309,7 @@ export async function renderAdminReview(container, { navigate }) {
           plainBadge(revoked ? '已解除' : active ? '生效中' : '未生效/已过期', revoked ? 'gray' : active ? 'red' : 'amber'),
           plainBadge(l.roomName, 'gray'),
         ),
-        h('span', { class: 'record-sub' }, `${l.startText} — ${l.endText}`),
+        h('span', { class: 'record-sub' }, timeRangeText(l.startText, l.endText)),
       ),
       h('div', { class: 'record-note' }, l.reason),
       h('div', { class: 'record-sub' }, `依据：${l.basis.map((b) => `${b.occurredAtText}（${b.status === 'revoked' ? '已撤销' : '已生效'}）`).join('、')}`),
@@ -356,12 +357,12 @@ export async function renderAdminReview(container, { navigate }) {
         h('div', { class: 'card-head' }, h('h2', {}, '登记待复核事件')),
         h('div', { class: 'card-body stack' },
           h('div', { class: 'form-grid' },
-            h('div', { class: 'field' }, h('label', {}, '场地'), roomSelect()),
+            inputField('场地', roomSelect()),
             studentPicker(),
-            h('div', { class: 'field' }, h('label', {}, '事件时间'), occurred),
+            inputField('事件时间', occurred),
             h('div', { class: 'field' }, h('label', {}, '事件类型'), type),
             h('div', { class: 'field span-2' }, h('label', {}, '关联预约编号（选填）'), reservationId),
-            h('div', { class: 'field span-2' }, h('label', {}, '事实与证据说明'), material),
+            inputField('事实与证据说明', material, { wide: true }),
           ),
           h('div', { class: 'row' },
             h('button', { class: 'btn primary', type: 'button', on: { click: submitManual } }, '登记待复核事件'),
@@ -385,13 +386,13 @@ export async function renderAdminReview(container, { navigate }) {
         h('div', { class: 'card-head' }, h('h2', {}, '故障登记与纠正')),
         h('div', { class: 'card-body stack' },
           h('div', { class: 'form-grid' },
-            h('div', { class: 'field' }, h('label', {}, '场地'), roomSelect()),
+            inputField('场地', roomSelect()),
             h('div', { class: 'field' }, h('label', {}, '影响功能'), h('select', {
               on: { change: (event) => { state.fault.function = event.target.value; } },
             }, h('option', { value: 'checkin', selected: state.fault.function === 'checkin' }, '签到功能'), h('option', { value: 'booking', selected: state.fault.function === 'booking' }, '预约功能'))),
-            h('div', { class: 'field' }, h('label', {}, '故障开始'), start),
-            h('div', { class: 'field' }, h('label', {}, '故障结束'), end),
-            h('div', { class: 'field span-2' }, h('label', {}, '核实说明'), description),
+            inputField('故障开始', start),
+            inputField('故障结束', end),
+            inputField('核实说明', description, { wide: true }),
           ),
           h('div', { class: 'row' }, h('button', { class: 'btn primary', type: 'button', on: { click: submitFault } }, '登记已核实故障')),
         ),
@@ -400,7 +401,7 @@ export async function renderAdminReview(container, { navigate }) {
         ? h('div', { class: 'list' }, state.faults.map((f) => h('article', { class: 'record' },
           h('div', { class: 'record-top' },
             h('div', { class: 'record-title' }, h('strong', {}, f.function === 'checkin' ? '签到故障' : '预约故障'), plainBadge(f.roomName, 'gray')),
-            h('span', { class: 'record-sub' }, `${f.startText} — ${f.endText}`),
+            h('span', { class: 'record-sub' }, timeRangeText(f.startText, f.endText)),
           ),
           h('div', { class: 'record-note' }, f.description),
           h('div', { class: 'record-sub' }, `受影响未签到记录：${f.impactedViolations.length ? f.impactedViolations.map((v) => `${v.occurredAtText}（${v.status}）`).join('、') : '无'}`),
@@ -417,22 +418,22 @@ export async function renderAdminReview(container, { navigate }) {
         h('div', { class: 'card-head' }, h('h2', {}, '创建预约限制')),
         h('div', { class: 'card-body stack' },
           h('div', { class: 'form-grid' },
-            h('div', { class: 'field' }, h('label', {}, '限制场地'), roomSelect()),
-            studentPicker(),
-            h('div', { class: 'field' }, h('label', {}, '开始时间'), h('input', {
+            inputField('限制场地', roomSelect()),
+            studentPicker('受限学生'),
+            inputField('开始时间', h('input', {
               type: 'datetime-local', value: state.limit.startAt,
               on: { change: (event) => { state.limit.startAt = event.target.value; } },
             })),
-            h('div', { class: 'field' }, h('label', {}, '结束时间'), h('input', {
+            inputField('结束时间', h('input', {
               type: 'datetime-local', value: state.limit.endAt,
               on: { change: (event) => { state.limit.endAt = event.target.value; } },
             })),
-            h('div', { class: 'field span-2' }, h('label', {}, '限制理由'), h('input', {
+            inputField('限制理由', h('input', {
               type: 'text', maxlength: 300, value: state.limit.reason,
               on: { input: (event) => { state.limit.reason = event.target.value; } },
-            })),
+            }), { wide: true }),
             h('div', { class: 'field span-2' },
-              h('label', {}, '依据（已生效违规）'),
+              h('span', { class: 'field-label' }, '依据（已生效违规）', requiredMark()),
               state.student
                 ? (effective.length
                   ? h('div', { class: 'list', style: { gap: '6px' } }, effective.map((v) => h('label', { class: 'check' },

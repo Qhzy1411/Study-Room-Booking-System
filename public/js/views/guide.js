@@ -1,6 +1,6 @@
 import { setContent } from '../util.js';
 import { api, ApiError, qs } from '../api.js';
-import { h, icon, toast, emptyState, plainBadge, statusBadge } from '../util.js';
+import { h, icon, toast, emptyState, plainBadge, statusBadge, timeRangeText } from '../util.js';
 import { createRouteMap } from '../seatmap.js';
 import { openScanDialog, openCheckinHelp } from '../scan.js';
 
@@ -60,7 +60,7 @@ export async function renderGuide(container, { navigate, params }) {
       h('label', {}, '选择预约'),
       h('select', {
         on: { change: (event) => { selectedId = event.target.value; loadRoute(); } },
-      }, active.map((r) => h('option', { value: r.id, selected: r.id === selectedId }, `${r.seatCode} 座位 · ${r.startText}—${r.endText}`))),
+      }, active.map((r) => h('option', { value: r.id, selected: r.id === selectedId }, `${r.seatCode} 座位 · ${timeRangeText(r.startText, r.endText)}`))),
     );
   }
 
@@ -147,7 +147,7 @@ export async function renderGuide(container, { navigate, params }) {
         h('dl', { class: 'kv' },
           h('dt', {}, '自习室'), h('dd', {}, r.roomName),
           h('dt', {}, '位置'), h('dd', {}, r.roomLocation),
-          h('dt', {}, '时段'), h('dd', {}, `${r.startText} — ${r.endText}`),
+          h('dt', {}, '时段'), h('dd', {}, timeRangeText(r.startText, r.endText)),
           h('dt', {}, '签到截止'), h('dd', {}, r.checkinDeadlineText),
         ),
         h('div', { class: 'notice' },

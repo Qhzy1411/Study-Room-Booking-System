@@ -3,7 +3,7 @@ import {
   store, setUser, applyClock, refreshClock, refreshUnread, beijingDateTime,
   startTicker, isSysAdmin,
 } from './state.js';
-import { h, icon, toast, clear, emptyState } from './util.js';
+import { h, icon, toast, clear, emptyState, inputField } from './util.js';
 import { renderBook } from './views/book.js';
 import { renderMine } from './views/mine.js';
 import { renderGuide } from './views/guide.js';
@@ -150,7 +150,8 @@ function loginPage(errorMessage = '') {
 
   async function doLogin(name, pass) {
     if (!name || !pass) {
-      error.textContent = '请输入账号和密码';
+      error.textContent = !name ? '请输入账号' : '请输入密码';
+      (!name ? username : password).focus();
       return;
     }
     submit.disabled = true;
@@ -169,6 +170,7 @@ function loginPage(errorMessage = '') {
 
   const form = h('form', {
     class: 'auth-form',
+    novalidate: true,
     on: {
       submit: (event) => {
         event.preventDefault();
@@ -178,8 +180,8 @@ function loginPage(errorMessage = '') {
   },
   h('h2', {}, '登录'),
   h('p', { class: 'lead' }, '使用教学账号访问预约、到座与管理功能。'),
-  h('div', { class: 'field' }, h('label', { for: 'login-username' }, '账号'), username),
-  h('div', { class: 'field' }, h('label', { for: 'login-password' }, '密码'), password),
+  inputField('账号', username),
+  inputField('密码', password),
   error,
   submit,
   h('div', { class: 'demo-accounts' },

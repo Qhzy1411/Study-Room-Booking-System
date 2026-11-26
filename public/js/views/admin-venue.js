@@ -1,9 +1,9 @@
 import { setContent, roomText } from '../util.js';
 import { api, ApiError, newKey, qs } from '../api.js';
-import { beijingDate, beijingTime, dateLabel, now } from '../state.js';
+import { beijingDate, beijingTime, now } from '../state.js';
 import {
   h, icon, toast, emptyState, openModal, confirmDialog, promptDialog,
-  plainBadge, statusBadge, section,
+  plainBadge, statusBadge, section, inputField, requiredMark, timeRangeText,
 } from '../util.js';
 
 const TABS = [
@@ -150,6 +150,7 @@ export async function renderAdminVenue(container, { navigate }) {
     save.addEventListener('click', async () => {
       if (!note.value.trim()) {
         error.textContent = '须填写现场核实或维修说明';
+        note.focus();
         return;
       }
       save.disabled = true;
@@ -168,7 +169,7 @@ export async function renderAdminVenue(container, { navigate }) {
       body: h('div', { class: 'stack' },
         h('div', { class: 'notice' }, '设施修复只更新设施状态，不自动撤销另行设置的停用安排。'),
         h('div', { class: 'field' }, h('label', {}, '插座状态'), select),
-        h('div', { class: 'field' }, h('label', {}, '核实说明'), note),
+        inputField('核实说明', note),
         error,
       ),
       footer: [h('button', { class: 'btn ghost', type: 'button', on: { click: () => dialog.close() } }, '取消'), save],
@@ -211,7 +212,7 @@ export async function renderAdminVenue(container, { navigate }) {
           h('td', {}, seat.current
             ? h('div', { class: 'stack', style: { gap: '2px' } },
               statusBadge(seat.current.status),
-              h('span', { class: 'tiny muted' }, `${seat.current.startText}—${seat.current.endText}`))
+              h('span', { class: 'tiny muted' }, timeRangeText(seat.current.startText, seat.current.endText)))
             : h('span', { class: 'muted' }, '空闲')),
           h('td', {}, seat.upcomingCount ? `${seat.upcomingCount} 条` : '—'),
           h('td', {}, seat.archived ? plainBadge('已归档', 'gray') : plainBadge('启用', 'green')),
@@ -258,10 +259,10 @@ export async function renderAdminVenue(container, { navigate }) {
       h('div', { class: 'card' },
         h('div', { class: 'card-body stack' },
           h('div', { class: 'form-grid' },
-            h('div', { class: 'field' }, h('label', {}, '开始日期'), from),
-            h('div', { class: 'field' }, h('label', {}, '结束日期'), to),
-            h('div', { class: 'field' }, h('label', {}, '开放开始'), start),
-            h('div', { class: 'field' }, h('label', {}, '开放结束'), end),
+            inputField('开始日期', from),
+            inputField('结束日期', to, { required: false }),
+            inputField('开放开始', start),
+            inputField('开放结束', end),
             h('div', { class: 'field span-2' }, h('label', {}, '备注'), note),
           ),
           h('div', { class: 'row' }, submit, error),
@@ -282,7 +283,7 @@ export async function renderAdminVenue(container, { navigate }) {
           ? h('div', { class: 'table-wrap' }, h('table', { class: 'data' },
             h('thead', {}, h('tr', {}, h('th', {}, '日期'), h('th', {}, '开放时段'), h('th', {}, '备注'))),
             h('tbody', {}, plans.map((plan) => h('tr', {},
-              h('td', {}, `${plan.date} ${dateLabel(plan.date)}`),
+              h('td', {}, plan.date),
               h('td', {}, `${plan.start}—${plan.end}`),
               h('td', {}, plan.note || '—'),
             ))),
@@ -297,11 +298,13 @@ export async function renderAdminVenue(container, { navigate }) {
     if (seats.length && !seats.some((s) => s.id === state.form.seatId)) state.form.seatId = seats[0].id;
     const form = state.form;
     const previewPanel = h('div', { hidden: !state.preview });
+    const error = h('p', { role: 'status', style: { color: 'var(--danger)', fontSize: '13px' } });
     function edit(field, value) {
       if (form[field] === value) return;
       form[field] = value;
       invalidatePreview();
       previewPanel.hidden = true;
+      error.textContent = '';
     }
     const seatSelect = h('select', {
       on: { change: (event) => { edit('seatId', event.target.value); } },
@@ -322,9 +325,8 @@ export async function renderAdminVenue(container, { navigate }) {
       type: 'text', maxlength: 120, value: form.reason, placeholder: '例如：设施检修、插座更换',
       on: { input: (event) => { edit('reason', event.target.value); } },
     });
-    const error = h('p', { style: { color: 'var(--danger)', fontSize: '13px' } });
     const clearedCheck = h('input', {
-      type: 'checkbox',
+      type: 'checkbox', required: true,
       checked: state.cleared,
       on: { change: (event) => { state.cleared = event.target.checked; renderAll(); } },
     });
@@ -335,6 +337,18 @@ export async function renderAdminVenue(container, { navigate }) {
       const sequence = previewSequence;
       previewPanel.hidden = true;
       error.textContent = '';
+      const missing = [
+        [seatSelect, '请选择目标座位'],
+        [reason, '请填写停用原因'],
+        ...(!form.immediate ? [[start, '请填写停用开始时间']] : []),
+        [end, '请填写停用结束时间'],
+      ].find(([input]) => !input.value.trim());
+      if (missing) {
+        const [input, message] = missing;
+        error.textContent = message;
+        input.focus();
+        return;
+      }
       try {
         const preview = await api.post('/admin/suspensions/preview', {
           seatId: form.seatId,
@@ -399,7 +413,7 @@ export async function renderAdminVenue(container, { navigate }) {
       h('div', { class: 'card-body stack' },
         h('div', { class: 'row between' },
           h('strong', {}, `影响预览 · ${preview.seat?.code || form.seatId}`),
-          h('span', { class: 'small muted' }, `${preview.startAt} — ${preview.endAt}`),
+          h('span', { class: 'small muted' }, timeRangeText(preview.startAt, preview.endAt)),
         ),
         preview.affected.length
           ? h('div', { class: 'impact-list' }, preview.affected.map((r) => h('div', { class: `impact-item ${r.status !== 'pending' ? 'danger' : ''}` },
@@ -407,11 +421,11 @@ export async function renderAdminVenue(container, { navigate }) {
               h('span', { class: 'strong' }, r.userName || r.userId),
               statusBadge(r.status),
             ),
-            h('div', { class: 'tiny muted' }, `${r.startText}—${r.endText} · ${r.plannedAction}`),
+            h('div', { class: 'tiny muted' }, `${timeRangeText(r.startText, r.endText)} · ${r.plannedAction}`),
           )))
           : h('p', { class: 'small muted' }, '该时段没有受影响的预约。'),
         preview.needClearance
-          ? h('label', { class: 'check' }, clearedCheck, h('span', { class: 'text' }, '已通知使用者离场，并确认现场已清空'))
+          ? h('label', { class: 'check' }, clearedCheck, h('span', { class: 'text' }, '已通知使用者离场，并确认现场已清空', requiredMark()))
           : null,
         h('div', { class: 'row' }, submit),
       ),
@@ -422,12 +436,11 @@ export async function renderAdminVenue(container, { navigate }) {
       h('div', { class: 'card' },
         h('div', { class: 'card-body stack' },
           h('div', { class: 'form-grid' },
-            h('div', { class: 'field' }, h('label', {}, '目标座位'), seatSelect),
-            h('div', { class: 'field' }, h('label', {}, '停用原因'), reason),
-            h('div', { class: 'field' }, h('label', {}, '立即开始'),
-              h('label', { class: 'check', style: { minHeight: '40px', alignItems: 'center' } }, immediate, h('span', { class: 'text' }, '立即停用（开始时间取当前业务时间）'))),
-            h('div', { class: 'field' }, h('label', {}, '结束时间'), end),
-            h('div', { class: 'field' }, h('label', {}, '开始时间'), start),
+            inputField('目标座位', seatSelect),
+            inputField('停用原因', reason),
+            h('label', { class: 'check span-2' }, immediate, h('span', { class: 'text' }, '立即停用（开始时间取当前业务时间）')),
+            inputField('开始时间', start, { required: !form.immediate }),
+            inputField('结束时间', end),
           ),
           h('div', { class: 'row' }, previewBtn, error),
           previewPanel,
@@ -446,7 +459,7 @@ export async function renderAdminVenue(container, { navigate }) {
             h('thead', {}, h('tr', {}, h('th', {}, '座位'), h('th', {}, '时段'), h('th', {}, '原因'), h('th', {}, '状态'), h('th', { class: 'actions-cell' }, '操作'))),
             h('tbody', {}, suspensions.map((s) => h('tr', {},
               h('td', {}, s.seatCode),
-              h('td', {}, `${s.startText}—${s.endText}`),
+              h('td', {}, timeRangeText(s.startText, s.endText)),
               h('td', {}, s.reason),
               h('td', {}, s.status === 'restored' ? plainBadge('已提前恢复', 'gray') : plainBadge('生效中', 'amber')),
               h('td', { class: 'actions-cell' },
@@ -535,13 +548,13 @@ export async function renderAdminVenue(container, { navigate }) {
         h('div', { class: 'row' }, statusBadge(detail.status), plainBadge(detail.userName || detail.userId, 'gray')),
         h('dl', { class: 'kv' },
           h('dt', {}, '座位'), h('dd', {}, `${detail.roomName} ${detail.seatCode}`),
-          h('dt', {}, '时段'), h('dd', {}, `${detail.startText}—${detail.endText}`),
+          h('dt', {}, '时段'), h('dd', {}, timeRangeText(detail.startText, detail.endText)),
           h('dt', {}, '签到截止'), h('dd', {}, detail.checkinDeadlineText),
           h('dt', {}, '实际签到'), h('dd', {}, detail.firstCheckinAtText || '未签到'),
           h('dt', {}, '结束方式'), h('dd', {}, detail.endReason || '—'),
         ),
         detail.segments?.length > 1
-          ? h('div', {}, h('h3', {}, '保留分段'), h('ul', { class: 'timeline' }, detail.segments.map((s) => h('li', {}, `${s.seatCode} · ${s.startText}—${s.endText}`))))
+          ? h('div', {}, h('h3', {}, '保留分段'), h('ul', { class: 'timeline' }, detail.segments.map((s) => h('li', {}, `${s.seatCode} · ${timeRangeText(s.startText, s.endText)}`))))
           : null,
       ),
       footer: [h('button', { class: 'btn', type: 'button', on: { click: () => dialog.close() } }, '关闭')],

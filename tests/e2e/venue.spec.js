@@ -24,7 +24,6 @@ describe.skipIf(!executablePath)('场地管理员操作', () => {
   }
 
   const tab = name => page.getByRole('tab', {name, exact: true}).click();
-  const field = (label, control) => page.locator('.field').filter({has: page.getByText(label, {exact: true})}).locator(control);
 
   beforeAll(async () => { browser = await chromium.launch({executablePath, headless: true}); });
   afterAll(async () => { await browser?.close(); });
@@ -51,13 +50,31 @@ describe.skipIf(!executablePath)('场地管理员操作', () => {
 
     await login('m1');
     await tab('停用管理');
-    await field('目标座位', 'select').selectOption('R1-A01');
-    await field('结束时间', 'input').fill(day + 'T11:00');
-    const reason = field('停用原因', 'input');
+    await page.getByLabel('目标座位').selectOption('R1-A01');
+    const reason = page.getByLabel('停用原因');
+    const start = page.getByLabel(/^开始时间/);
+    const end = page.getByLabel('结束时间');
+    const immediate = page.getByRole('checkbox', {name: /^立即停用/});
     const preview = page.getByRole('button', {name: '预览影响'});
     const clearance = page.getByRole('checkbox', {name: /现场已清空/});
     const confirm = page.getByRole('button', {name: '确认停用'});
+    expect(await page.getByText('立即开始', {exact: true}).count()).toBe(0);
+    await page.locator('label').filter({has: reason}).locator('.required-mark').waitFor();
+    expect(await start.isEnabled()).toBe(false);
+    await reason.fill('   ');
+    await preview.click();
+    await page.getByText('请填写停用原因', {exact: true}).waitFor();
+    expect(await reason.evaluate(input => document.activeElement === input)).toBe(true);
     await reason.fill('椅脚检修');
+    await immediate.uncheck();
+    await start.fill('');
+    await preview.click();
+    await page.getByText('请填写停用开始时间', {exact: true}).waitFor();
+    await immediate.check();
+    await end.fill('');
+    await preview.click();
+    await page.getByText('请填写停用结束时间', {exact: true}).waitFor();
+    await end.fill(day + 'T11:00');
     await preview.click();
     await clearance.waitFor();
     expect(await confirm.isEnabled()).toBe(false);
@@ -155,10 +172,10 @@ describe.skipIf(!executablePath)('场地管理员操作', () => {
     const month = page.getByLabel('查询月份');
     expect(await month.inputValue()).toBe(today.slice(0, 7));
     const future = addDaysLocal(today, 100);
-    await field('开始日期', 'input').fill(future);
-    await field('结束日期', 'input').fill(future);
+    await page.getByLabel('开始日期').fill(future);
+    await page.getByLabel('结束日期').fill(future);
     await page.getByRole('button', {name:'发布开放计划'}).click();
-    await page.locator('tbody tr').filter({hasText:future}).waitFor();
+    await page.getByRole('cell', {name: future, exact: true}).waitFor();
     expect(await month.inputValue()).toBe(future.slice(0, 7));
     await month.fill('2000-01');
     await page.getByText('所选月份暂无已发布计划。').waitFor();

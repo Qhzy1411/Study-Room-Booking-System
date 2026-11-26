@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from 'vitest';
-import { h, escapeHtml, statusBadge, durationText, formatPercent, emptyState } from '../../../public/js/util.js';
+import { h, escapeHtml, statusBadge, durationText, formatPercent, emptyState, timeRangeText } from '../../../public/js/util.js';
 import { beijingDate, beijingTime, beijingDateTime, addDays, dateLabel, weekdayLabel } from '../../../public/js/state.js';
 import { qs } from '../../../public/js/api.js';
 import { createSeatMap, createRouteMap } from '../../../public/js/seatmap.js';
@@ -41,6 +41,11 @@ describe('前端通用工具', () => {
     expect(addDays('2026-11-06', 3)).toBe('2026-11-09');
     expect(dateLabel('2026-11-06')).toBe('11 月 6 日');
     expect(['周一', '周二', '周三', '周四', '周五', '周六', '周日']).toContain(weekdayLabel('2026-11-06'));
+  });
+
+  it('同日时段只显示一次日期，跨日时段保留两端日期', () => {
+    expect(timeRangeText('2026-11-27 08:00', '2026-11-27 09:00')).toBe('2026-11-27 08:00—09:00');
+    expect(timeRangeText('2026-11-30 22:00', '2026-12-01 08:00')).toBe('2026-11-30 22:00—2026-12-01 08:00');
   });
 });
 

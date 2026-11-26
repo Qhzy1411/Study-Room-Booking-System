@@ -58,6 +58,18 @@ export function setContent(el, ...children) {
   return el;
 }
 
+export function requiredMark() {
+  return h('span', { class: 'required-mark', 'aria-hidden': 'true' }, '*');
+}
+
+export function inputField(label, control, { required = true, wide = false } = {}) {
+  control.required = required;
+  return h('label', { class: wide ? 'field span-2' : 'field' },
+    h('span', { class: 'field-label' }, label, required ? requiredMark() : null),
+    control,
+  );
+}
+
 const ICONS = {
   logo: '<path d="M5 4.5h6.2a2 2 0 0 1 2 2V22a2 2 0 0 0-2-2H5z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/><path d="M19 4.5h-5.8a2 2 0 0 0-2 2V22a2 2 0 0 1 2-2H19z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>',
   calendar: '<rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
@@ -196,7 +208,7 @@ export function promptDialog({ title, label, message = null, placeholder = '', v
     const submit = () => {
       const text = input.value.trim();
       if (required && !text) {
-        error.textContent = '请填写必要内容';
+        error.textContent = `请填写${label}`;
         input.focus();
         return;
       }
@@ -206,7 +218,7 @@ export function promptDialog({ title, label, message = null, placeholder = '', v
       title,
       body: h('div', { class: 'stack' },
         message ? h('p', { class: 'muted small' }, message) : null,
-        h('div', { class: 'field' }, h('label', {}, label), input),
+        inputField(label, input, { required }),
         error,
       ),
       footer: [
@@ -262,8 +274,14 @@ export function violationTypeLabel(type) {
   return '违规事件';
 }
 
+export function timeRangeText(start, end) {
+  if (!start || !end) return start || end || '—';
+  const date = /^\d{4}-\d{2}-\d{2} /.exec(start)?.[0];
+  return `${start}—${date && end.startsWith(date) ? end.slice(date.length) : end}`;
+}
+
 export function describeReservation(r) {
-  return [r.roomName, r.seatCode ? `${r.seatCode} 座位` : null, r.startText && r.endText ? `${r.startText}—${r.endText}` : null]
+  return [r.roomName, r.seatCode ? `${r.seatCode} 座位` : null, r.startText && r.endText ? timeRangeText(r.startText, r.endText) : null]
     .filter(Boolean).join(' · ');
 }
 
@@ -276,7 +294,7 @@ export function describeViolation(v) {
 }
 
 export function describeLimit(l) {
-  return [l.roomName, l.startText && l.endText ? `${l.startText}—${l.endText}` : null].filter(Boolean).join(' · ');
+  return [l.roomName, l.startText && l.endText ? timeRangeText(l.startText, l.endText) : null].filter(Boolean).join(' · ');
 }
 
 export function roomText(room) {

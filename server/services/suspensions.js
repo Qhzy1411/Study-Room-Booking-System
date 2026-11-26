@@ -61,7 +61,7 @@ function buildPreview(admin, payload) {
   if (startTs == null || endTs == null) throw badRequest('停用开始与结束时间格式不正确');
   if (endTs <= startTs) throw unprocessable('停用结束时间必须晚于开始时间');
   const ts = now();
-  if (startTs < ts - 1000) throw unprocessable('停用开始时间不得早于当前时间；如需立即停用请选择“立即开始”');
+  if (startTs < ts - 1000) throw unprocessable('停用开始时间不得早于当前时间；如需立即停用请勾选“立即停用”');
   if (!reason) throw badRequest('停用原因不能为空');
   const affected = affectedReservations(seat.id, startTs, endTs);
   const activeInInterval = affected.filter((r) => r.status === 'using' || r.status === 'away');
