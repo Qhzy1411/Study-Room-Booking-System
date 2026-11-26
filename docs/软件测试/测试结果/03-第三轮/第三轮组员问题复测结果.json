@@ -1,0 +1,408 @@
+{
+  "started": "2026-11-26T07:01:53.558Z",
+  "finished": "2026-11-26T07:02:11.322Z",
+  "node": "v24.22.3",
+  "browser": "158.0.8127.88",
+  "before": {
+    "filesPerProject": 64,
+    "differences": []
+  },
+  "after": {
+    "filesPerProject": 64,
+    "differences": []
+  },
+  "records": [
+    {
+      "id": "F02",
+      "part": "第二名学生预约原座",
+      "status": "differs_from_expected",
+      "expected": [
+        "available",
+        201
+      ],
+      "actual": [
+        "occupied",
+        409
+      ],
+      "evidence": {
+        "message": "该座位在所选时段已被预约，请选择其他座位或时段"
+      }
+    },
+    {
+      "id": "F02",
+      "part": "停用旧座后的新预约",
+      "status": "differs_from_expected",
+      "expected": [
+        false,
+        "A04",
+        "pending"
+      ],
+      "actual": [
+        true,
+        "A04",
+        "cancelled"
+      ],
+      "evidence": {
+        "reason": "场地停用"
+      }
+    },
+    {
+      "id": "F03",
+      "part": "登记后新增待复核事件",
+      "status": "differs_from_expected",
+      "expected": 1,
+      "actual": 0,
+      "evidence": {
+        "toast": "Cannot read properties of undefined (reading 'trim')\n×"
+      }
+    },
+    {
+      "id": "F04",
+      "part": "清场后提交",
+      "status": "differs_from_expected",
+      "expected": [
+        true,
+        true,
+        1
+      ],
+      "actual": [
+        false,
+        false,
+        0
+      ],
+      "evidence": {
+        "seat": "A01"
+      }
+    },
+    {
+      "id": "F09-F10",
+      "part": "同场地同时段柱图",
+      "status": "differs_from_expected",
+      "expected": [
+        960,
+        60,
+        6.3
+      ],
+      "actual": [
+        13440,
+        60,
+        0.4
+      ],
+      "evidence": {
+        "date": "2026-11-27",
+        "window": "10:00–11:00"
+      }
+    },
+    {
+      "id": "F09-F10",
+      "part": "浏览器卡片与同场地柱图",
+      "status": "differs_from_expected",
+      "expected": true,
+      "actual": false,
+      "evidence": {
+        "card": "6.3%",
+        "barLabels": [
+          "0.4%"
+        ]
+      }
+    },
+    {
+      "id": "F09-F10",
+      "part": "归档后重看昨日",
+      "status": "differs_from_expected",
+      "expected": [
+        960,
+        60,
+        6.3
+      ],
+      "actual": [
+        900,
+        60,
+        6.7
+      ],
+      "evidence": {}
+    },
+    {
+      "id": "F09-F10",
+      "part": "新增后重看昨日",
+      "status": "differs_from_expected",
+      "expected": [
+        960,
+        60,
+        6.3
+      ],
+      "actual": [
+        1020,
+        60,
+        5.9
+      ],
+      "evidence": {}
+    },
+    {
+      "id": "F11",
+      "part": "普通设施投诉关联记录",
+      "status": "differs_from_expected",
+      "expected": [
+        "facility",
+        null,
+        null
+      ],
+      "actual": [
+        "facility",
+        "V-0002",
+        "M1"
+      ],
+      "evidence": {
+        "selectedBeforeTypeChange": "V-0002"
+      }
+    },
+    {
+      "id": "F12",
+      "part": "普通投诉进入现场进度",
+      "status": "differs_from_expected",
+      "expected": [
+        false,
+        false
+      ],
+      "actual": [
+        true,
+        false
+      ],
+      "evidence": {
+        "ordinaryComplaint": "C-0004"
+      }
+    },
+    {
+      "id": "F21-F23",
+      "part": "场地选择与本人的预约匹配",
+      "status": "differs_from_expected",
+      "expected": false,
+      "actual": true,
+      "evidence": {
+        "status": 422,
+        "message": "预约不属于所选自习室"
+      }
+    },
+    {
+      "id": "F21-F23",
+      "part": "返回预约页的原筛选时段",
+      "status": "differs_from_expected",
+      "expected": [
+        "14:00",
+        "15:00"
+      ],
+      "actual": [
+        "08:00",
+        "09:00"
+      ],
+      "evidence": {}
+    },
+    {
+      "id": "F13",
+      "part": "桌面二维码",
+      "status": "differs_from_expected",
+      "expected": false,
+      "actual": true,
+      "evidence": {
+        "room": "R2",
+        "requests": [
+          "/api/admin/rooms/R2"
+        ],
+        "afterReenter": "目标页已加载",
+        "evaluationCounts": {
+          "R1": 16,
+          "R2": 2
+        }
+      }
+    },
+    {
+      "id": "F13",
+      "part": "现场预约",
+      "status": "differs_from_expected",
+      "expected": false,
+      "actual": true,
+      "evidence": {
+        "room": "R2",
+        "requests": [
+          "/api/admin/rooms/R2"
+        ],
+        "afterReenter": "目标页已加载",
+        "evaluationCounts": {
+          "R1": 16,
+          "R2": 2
+        }
+      }
+    },
+    {
+      "id": "F13",
+      "part": "评价管理",
+      "status": "differs_from_expected",
+      "expected": false,
+      "actual": true,
+      "evidence": {
+        "room": "R2",
+        "requests": [
+          "/api/admin/rooms/R2"
+        ],
+        "afterReenter": "目标页已加载",
+        "evaluationCounts": {
+          "R1": 16,
+          "R2": 2
+        }
+      }
+    },
+    {
+      "id": "F18-F19",
+      "part": "维护页新增座位入口",
+      "status": "differs_from_expected",
+      "expected": true,
+      "actual": false,
+      "evidence": {
+        "controls": [
+          "0",
+          "金金施成场地管理员",
+          "刷新",
+          "核实设施",
+          "归档座位"
+        ],
+        "addedThroughAdminService": "Z99"
+      }
+    },
+    {
+      "id": "F18-F19",
+      "part": "已获业务复核授权账号的违约复核入口",
+      "status": "differs_from_expected",
+      "expected": true,
+      "actual": false,
+      "evidence": {
+        "links": [
+          "账号与规则",
+          "数据统计",
+          "投诉处理",
+          "通知",
+          "个人资料"
+        ],
+        "canReview": true
+      }
+    },
+    {
+      "id": "F08",
+      "part": "管理员重置后存续的会话记录",
+      "status": "differs_from_expected",
+      "expected": 0,
+      "actual": 1,
+      "evidence": {
+        "before": 1,
+        "method": "仅计数，未使用原会话访问"
+      }
+    },
+    {
+      "id": "F01-0-with-key",
+      "part": "逾期签到应与落库状态一致",
+      "status": "differs_from_expected",
+      "expected": [
+        409,
+        "no_show",
+        1,
+        1
+      ],
+      "actual": [
+        409,
+        "pending",
+        0,
+        0
+      ],
+      "evidence": {
+        "earlierDue": 0,
+        "withKey": true,
+        "message": "当前预约状态为 no_show，不能签到",
+        "afterSubsequentRead": [
+          "no_show",
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "id": "F01-0-no-key",
+      "part": "逾期签到应与落库状态一致",
+      "status": "matches_expected",
+      "expected": [
+        409,
+        "no_show",
+        1,
+        1
+      ],
+      "actual": [
+        409,
+        "no_show",
+        1,
+        1
+      ],
+      "evidence": {
+        "earlierDue": 0,
+        "withKey": false,
+        "message": "当前预约状态为 no_show，不能签到",
+        "afterSubsequentRead": [
+          "no_show",
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "id": "F01-200-with-key",
+      "part": "逾期签到应与落库状态一致",
+      "status": "differs_from_expected",
+      "expected": [
+        409,
+        "no_show",
+        1,
+        1
+      ],
+      "actual": [
+        409,
+        "pending",
+        0,
+        0
+      ],
+      "evidence": {
+        "earlierDue": 200,
+        "withKey": true,
+        "message": "当前预约状态为 no_show，不能签到",
+        "afterSubsequentRead": [
+          "pending",
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "F01-200-no-key",
+      "part": "逾期签到应与落库状态一致",
+      "status": "differs_from_expected",
+      "expected": [
+        409,
+        "no_show",
+        1,
+        1
+      ],
+      "actual": [
+        409,
+        "pending",
+        0,
+        0
+      ],
+      "evidence": {
+        "earlierDue": 200,
+        "withKey": false,
+        "message": "当前预约状态为 no_show，不能签到",
+        "afterSubsequentRead": [
+          "no_show",
+          1,
+          1
+        ]
+      }
+    }
+  ]
+}

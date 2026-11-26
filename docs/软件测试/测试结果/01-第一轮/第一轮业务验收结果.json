@@ -1,0 +1,229 @@
+{
+  "node": "v24.22.3",
+  "executedAt": "2026-11-26T06:22:55.774Z",
+  "results": [
+    {
+      "id": "P01-R1",
+      "passed": true,
+      "expected": true,
+      "actual": true,
+      "context": {
+        "date": "2026-12-03",
+        "seats": 16,
+        "reason": "当日无开放计划"
+      }
+    },
+    {
+      "id": "P01-R2",
+      "passed": true,
+      "expected": true,
+      "actual": true,
+      "context": {
+        "date": "2026-12-03",
+        "seats": 8,
+        "reason": "当日无开放计划"
+      }
+    },
+    {
+      "id": "P02",
+      "passed": true,
+      "expected": [
+        "available",
+        "pending"
+      ],
+      "actual": [
+        "available",
+        "pending"
+      ],
+      "context": {}
+    },
+    {
+      "id": "P03",
+      "passed": true,
+      "expected": [
+        409,
+        "08:00",
+        "22:00"
+      ],
+      "actual": [
+        409,
+        "08:00",
+        "22:00"
+      ],
+      "context": {}
+    },
+    {
+      "id": "P04",
+      "passed": false,
+      "expected": [
+        true,
+        true
+      ],
+      "actual": [
+        true,
+        false
+      ],
+      "context": {
+        "date": "2027-02-03",
+        "managerCount": 60,
+        "first": "2026-11-19",
+        "lastShown": "2027-01-17",
+        "studentPlan": {
+          "date": "2027-02-03",
+          "start": "08:00",
+          "end": "22:00",
+          "version": 17,
+          "note": null,
+          "createdAtText": "2026-12-03 08:00"
+        }
+      }
+    },
+    {
+      "id": "S01",
+      "passed": true,
+      "expected": [
+        "RSV-0240",
+        "A04",
+        "pending"
+      ],
+      "actual": [
+        "RSV-0240",
+        "A04",
+        "pending"
+      ],
+      "context": {}
+    },
+    {
+      "id": "S02",
+      "passed": false,
+      "expected": [
+        "available",
+        201
+      ],
+      "actual": [
+        "occupied",
+        409
+      ],
+      "context": {
+        "reason": "该座位在所选时段已被预约，请选择其他座位或时段"
+      }
+    },
+    {
+      "id": "S03",
+      "passed": false,
+      "expected": [
+        false,
+        "A04",
+        "pending"
+      ],
+      "actual": [
+        true,
+        "A04",
+        "cancelled"
+      ],
+      "context": {
+        "reservation": "RSV-0240",
+        "affected": [
+          "RSV-0240"
+        ],
+        "reason": "场地停用"
+      }
+    },
+    {
+      "id": "H01",
+      "passed": true,
+      "expected": [
+        960,
+        60,
+        6.3
+      ],
+      "actual": [
+        960,
+        60,
+        6.3
+      ],
+      "context": {
+        "date": "2026-11-27"
+      }
+    },
+    {
+      "id": "H02",
+      "passed": false,
+      "expected": [
+        960,
+        60,
+        6.3
+      ],
+      "actual": [
+        900,
+        60,
+        6.7
+      ],
+      "context": {
+        "date": "2026-11-27",
+        "baseline": [
+          960,
+          60,
+          6.3
+        ]
+      }
+    },
+    {
+      "id": "H03",
+      "passed": false,
+      "expected": [
+        960,
+        60,
+        6.3
+      ],
+      "actual": [
+        1020,
+        60,
+        5.9
+      ],
+      "context": {
+        "date": "2026-11-27",
+        "baseline": [
+          960,
+          60,
+          6.3
+        ]
+      }
+    },
+    {
+      "id": "H04",
+      "passed": false,
+      "expected": 1,
+      "actual": 0,
+      "context": {
+        "date": "2026-11-26",
+        "before": 0,
+        "after": 0,
+        "reservation": "RSV-0240",
+        "createdAt": "2026-11-26 07:30"
+      }
+    },
+    {
+      "id": "F01",
+      "passed": true,
+      "expected": [
+        422,
+        "facility"
+      ],
+      "actual": [
+        422,
+        "facility"
+      ],
+      "context": {
+        "seat": "A02"
+      }
+    },
+    {
+      "id": "F02",
+      "passed": true,
+      "expected": 201,
+      "actual": 201,
+      "context": {}
+    }
+  ]
+}

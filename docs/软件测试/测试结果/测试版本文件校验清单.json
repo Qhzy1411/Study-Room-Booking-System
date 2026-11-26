@@ -1,0 +1,322 @@
+[
+  {
+    "path": "server\\audit.js",
+    "sha256": "83AB0294AB26C65F25C3920AB107D21083E9A1FFDC3D388D6967C1D0D935D32B",
+    "copyMatches": true
+  },
+  {
+    "path": "server\\auth.js",
+    "sha256": "82FABAF2050F81D210C244B14B77BCAEB69FAB6E1D6B0A5266C4B4BF8B23EEAE",
+    "copyMatches": true
+  },
+  {
+    "path": "server\\clock.js",
+    "sha256": "1A2A1C3A3DE576D61BF187AB011F7AD0BEDE9ED369CB94137B99F8B09DDD314A",
+    "copyMatches": true
+  },
+  {
+    "path": "server\\config.js",
+    "sha256": "3E9810499C543771499038A1289647DAB6D0D6E02BCF4143AA4A39D83EE52445",
+    "copyMatches": true
+  },
+  {
+    "path": "server\\db.js",
+    "sha256": "FB0D5BE7173F485604DD2DCA9119A5E279FFD38F0042917F18E8DA2A0FED2B2D",
+    "copyMatches": true
+  },
+  {
+    "path": "server\\errors.js",
+    "sha256": "1CADA696A26C938CDDF4B209C9DE147F899DB414DC87BA96FADAFAD81C49621D",
+    "copyMatches": true
+  },
+  {
+    "path": "server\\index.js",
+    "sha256": "E3CAA8AFDAF90DEB6D84357D65966A8C5FB126EE7C3ED02DCC5E60566619A7AB",
+    "copyMatches": true
+  },
+  {
+    "path": "server\\qr.js",
+    "sha256": "07F3A8A0DE6FE2CB6FB4F873ADA7475CCA88317AE030BCBB6DF9ABBCEB1C39B8",
+    "copyMatches": true
+  },
+  {
+    "path": "server\\roommap.js",
+    "sha256": "42C13BEB54BA6ADBB58A26DC1900D1231BD3B9AB33B4FB28EBEC8C4FFE354C0D",
+    "copyMatches": true
+  },
+  {
+    "path": "server\\routes.js",
+    "sha256": "0B4FE5BCC1BC942A472217662B4D90D23AFA4C865B97684A0D870F267125E8DA",
+    "copyMatches": true
+  },
+  {
+    "path": "server\\scheduler.js",
+    "sha256": "F9FD315A6D3D2A2269E73E850C8145BE9EC4938FFA5DFAAB39CBBF6FFB3EBC35",
+    "copyMatches": true
+  },
+  {
+    "path": "server\\seed.js",
+    "sha256": "B9D85C63963C13C3DB6D6C5715E9FE5CC7D0D0779AD4A6B22C9B2FA183D26B71",
+    "copyMatches": true
+  },
+  {
+    "path": "server\\time.js",
+    "sha256": "6A895BF51B496854519E083C1B064CD79F1F509D0272382679A580ABFAC9F8BE",
+    "copyMatches": true
+  },
+  {
+    "path": "server\\services\\admin.js",
+    "sha256": "A3AF014D329702F12DA30D86B404C2ABCB4009EE179328497A12ECD07F4C1C44",
+    "copyMatches": true
+  },
+  {
+    "path": "server\\services\\availability.js",
+    "sha256": "CA8DCE497EFD6BED96D263A6C29077EC8725F980412DAE20EA73B82399DF725D",
+    "copyMatches": true
+  },
+  {
+    "path": "server\\services\\complaints.js",
+    "sha256": "2594B1B3B4BA11420D7BE294C9090151AA66C979B63BE2C003AB642246908768",
+    "copyMatches": true
+  },
+  {
+    "path": "server\\services\\evaluations.js",
+    "sha256": "7EC9E51BB9FC54325EE453C21734E1B17D69184A0D36A27E4F5C8C7D05E872C0",
+    "copyMatches": true
+  },
+  {
+    "path": "server\\services\\idempotency.js",
+    "sha256": "DD2E4B2248C1243509EBD1700B096B6F4C2400EADEEA6BEE9C4EA737E3F94B09",
+    "copyMatches": true
+  },
+  {
+    "path": "server\\services\\notifications.js",
+    "sha256": "3072E680EFA3D578EF15FA2F3EF670AB31101EB509C6BBC6715E78198601E698",
+    "copyMatches": true
+  },
+  {
+    "path": "server\\services\\records.js",
+    "sha256": "442C8A2A1AEF66742090B2C566F5A3A1C20D7A1C862FB2965B36AB75E6C0DAB9",
+    "copyMatches": true
+  },
+  {
+    "path": "server\\services\\reservations.js",
+    "sha256": "67A85CDBACE2C64EFD8EA09DEAE0E15CD5E132150629E4A65061F49BA70C5667",
+    "copyMatches": true
+  },
+  {
+    "path": "server\\services\\resources.js",
+    "sha256": "3F241D0DF74FB494F227873E5D391BF87099488FF70A2AEC940A1660A9841C9B",
+    "copyMatches": true
+  },
+  {
+    "path": "server\\services\\shared.js",
+    "sha256": "2E4FA9CF5F187F469B3957BA3AF2CEC56B5350DF7DD23E2DE66F8FA7DBDF1266",
+    "copyMatches": true
+  },
+  {
+    "path": "server\\services\\stats.js",
+    "sha256": "CA4867EEBA7EE7FAEFC29956C8CF9EE68846D74FD3E0B364F935490F5B4156BB",
+    "copyMatches": true
+  },
+  {
+    "path": "server\\services\\suspensions.js",
+    "sha256": "237251E7D10CE7BFAB499FF3321E3F3C4FCF5EBFA1D2C9E98CD6C5EC0C1C137F",
+    "copyMatches": true
+  },
+  {
+    "path": "server\\services\\violations.js",
+    "sha256": "F60FE9FBA8B4448CD2BEA55B27B54824448C41D2BB98C927CFEE1A37246617C3",
+    "copyMatches": true
+  },
+  {
+    "path": "public\\index.html",
+    "sha256": "9EB95EAD16825910CF42DB3FDCA9D117D40D558AD629483D8EED7B45A16EE74E",
+    "copyMatches": true
+  },
+  {
+    "path": "public\\css\\app.css",
+    "sha256": "7FFA6A19FDD89047323368DD2BACCE95CBD09E20D4D0158A3260BD773CD42DE8",
+    "copyMatches": true
+  },
+  {
+    "path": "public\\js\\api.js",
+    "sha256": "70E02B85F1C34EE18928BDD9B9DC18EF65CD1F6A6A8F17780BE48660BAA3E28C",
+    "copyMatches": true
+  },
+  {
+    "path": "public\\js\\app.js",
+    "sha256": "6FCD5499F93F0F554A417681EF380D5DDE272FF8D766CFC59E020AEC6F4109C3",
+    "copyMatches": true
+  },
+  {
+    "path": "public\\js\\charts.js",
+    "sha256": "F9F6C92DE3AFC477C792808A253B451C2EE7F9FB97F941F1E9D5434773138E5E",
+    "copyMatches": true
+  },
+  {
+    "path": "public\\js\\scan.js",
+    "sha256": "9DA6BE7200359984BF080E320F8C168B6D5FF1443A35CE5541513134FD85EF97",
+    "copyMatches": true
+  },
+  {
+    "path": "public\\js\\seatmap.js",
+    "sha256": "7626E369B9D771AAA9917F407A965DEF636F1046DAFD85F4E5AB8A7545A8EBB9",
+    "copyMatches": true
+  },
+  {
+    "path": "public\\js\\state.js",
+    "sha256": "CD79EDE6E00FA287D2E4D5A9956630D308F4787DE0E866E35DB10172FC246260",
+    "copyMatches": true
+  },
+  {
+    "path": "public\\js\\util.js",
+    "sha256": "EBFE89B807EBD225EA82091AD4A0CCCF1F5DB2E2589BF7BC0B4ECE360E0FADC0",
+    "copyMatches": true
+  },
+  {
+    "path": "public\\js\\views\\admin-complaints.js",
+    "sha256": "54EF7E5B59BA69FDAB9849E84ADD03FBD9AB0FEEF8F62765D5FDA90D0484D9E9",
+    "copyMatches": true
+  },
+  {
+    "path": "public\\js\\views\\admin-review.js",
+    "sha256": "78A57C35B3C5B091947DD925F2793E359626C144C79B9A4EAFE34C6FAF88D096",
+    "copyMatches": true
+  },
+  {
+    "path": "public\\js\\views\\admin-stats.js",
+    "sha256": "89C74A80B8FE29E93F482AE1BA34223863B60543F4B85C41DD0DF77FE3792CC6",
+    "copyMatches": true
+  },
+  {
+    "path": "public\\js\\views\\admin-system.js",
+    "sha256": "A3514462A3C398D33091C9C089351C38E575610397E0DD1FD9BD2CB3D83E43E6",
+    "copyMatches": true
+  },
+  {
+    "path": "public\\js\\views\\admin-venue.js",
+    "sha256": "D374BEC3957D92E59E1B72BE8DEFB595EFEF83CBF2FCC49F4C71E3BA69BBBF29",
+    "copyMatches": true
+  },
+  {
+    "path": "public\\js\\views\\book.js",
+    "sha256": "19A399F406D0BD96ECDE27A535A7EFD03EE18EA0932BE4EC9D3FB4979E8F279A",
+    "copyMatches": true
+  },
+  {
+    "path": "public\\js\\views\\feedback.js",
+    "sha256": "B6D8423E8ED973D1592AB67672A27CED63A9E3B49D79A4EECA03FB1C8281903F",
+    "copyMatches": true
+  },
+  {
+    "path": "public\\js\\views\\guide.js",
+    "sha256": "C90977B70AEE6D1444A5F1AFC7EE8B4E1002F1B67ADD43BC3CF004CE53C379A2",
+    "copyMatches": true
+  },
+  {
+    "path": "public\\js\\views\\mine.js",
+    "sha256": "E136332C3FCF2E4B2CDFE22229718B8184BA8AC6C1303CDAA619A069340C6ADE",
+    "copyMatches": true
+  },
+  {
+    "path": "public\\js\\views\\notifications.js",
+    "sha256": "1B76B0151E4FD4C591CEF0E69A05123268305621B111EF34E36C0CD4668B0974",
+    "copyMatches": true
+  },
+  {
+    "path": "public\\js\\views\\profile.js",
+    "sha256": "B693B5C34A482BF9C52A2417847C694A2724977965386B588F9384161365A52C",
+    "copyMatches": true
+  },
+  {
+    "path": "public\\js\\views\\records.js",
+    "sha256": "7B486AF2BF0EDD9C9CE4032967500B3AE4157B335E49611EA6BE3A49E6A74608",
+    "copyMatches": true
+  },
+  {
+    "path": "tests\\e2e\\app.spec.js",
+    "sha256": "D82EB40D069995742E12D807729DC45A32A499FD7C2B3EE0DAF9129BC845BA35",
+    "copyMatches": true
+  },
+  {
+    "path": "tests\\helpers\\client.js",
+    "sha256": "85B1FF5A67FE5D242A407E265383AF35B1FE49FC09D9759A9E16FCBCD28FA15B",
+    "copyMatches": true
+  },
+  {
+    "path": "tests\\helpers\\server.js",
+    "sha256": "303C940587351F34917C70AF82723EFCB99044E13384635569A8614A70668CDE",
+    "copyMatches": true
+  },
+  {
+    "path": "tests\\unit\\client\\ui.spec.js",
+    "sha256": "7BB4239508888468BD977AC596262CF43731E624BD947E10AC9DA6E4336762E0",
+    "copyMatches": true
+  },
+  {
+    "path": "tests\\unit\\server\\governance.spec.js",
+    "sha256": "90BE31FF68AD86115850F6D60AC53E9932A1672B04C796D847867B39C108888C",
+    "copyMatches": true
+  },
+  {
+    "path": "tests\\unit\\server\\lifecycle.spec.js",
+    "sha256": "04F6C5A2CBFAFE21FF6D3E6D4D49172824DB51914012CACC75A4D2F85D7E39B8",
+    "copyMatches": true
+  },
+  {
+    "path": "tests\\unit\\server\\reservation.spec.js",
+    "sha256": "D091DE9ABEE10EED4215F2E44AC73E409BBDCD79EC56C643EB608EC4A33B40B6",
+    "copyMatches": true
+  },
+  {
+    "path": "tests\\unit\\server\\security.spec.js",
+    "sha256": "675A8C82B0B06C120AAFE0EB18632992C89E791AC6D5A62F3E59BBEFC0F6CEAF",
+    "copyMatches": true
+  },
+  {
+    "path": "tests\\unit\\server\\stats.spec.js",
+    "sha256": "E7BD9194EDF78359A50C7078557A731D79638282E93577380588CC0E93D2B029",
+    "copyMatches": true
+  },
+  {
+    "path": "tests\\unit\\server\\suspension.spec.js",
+    "sha256": "DEE370EC3E16472D87869E5CCDD0DCC3BA6CBB020AF52E3FE8184BB1361F298C",
+    "copyMatches": true
+  },
+  {
+    "path": "tests\\unit\\server\\time.spec.js",
+    "sha256": "1CC8CB2B325D9654102D8C4CAD24ECA050671D487606F5C4DE61479DB1CC43EB",
+    "copyMatches": true
+  },
+  {
+    "path": "docs\\交接文档.md",
+    "sha256": "97E7FB7E1FA81DD77EF3BAED7D8EBAF340869FC9C3E5035CD333D48F1BE0E6F1",
+    "copyMatches": true
+  },
+  {
+    "path": "package.json",
+    "sha256": "20F95A7A33C51F663E756B0324694AA80146BACCA0821497F599B0613235AE76",
+    "copyMatches": true
+  },
+  {
+    "path": "pnpm-lock.yaml",
+    "sha256": "4D2628EACFA11145271AD30174F05B2AEFCAEFF81B83037EB4B553161BB3306A",
+    "copyMatches": true
+  },
+  {
+    "path": "vitest.config.js",
+    "sha256": "F05060B6328F3F5A67FBC046CF029279922D11FB70075794FB77F97F58EF2D6C",
+    "copyMatches": true
+  },
+  {
+    "path": "README.md",
+    "sha256": "A4560EC9B24A819C836558BB2A1F7EEF46D9CCDFFD527FE1D0FD177B2DE1B986",
+    "copyMatches": true
+  },
+  {
+    "path": ".gitignore",
+    "sha256": "6883AB2400275E489C75F4C1152EEA4C028BF308B3CC6AF1422416A74E1A4A90",
+    "copyMatches": true
+  }
+]

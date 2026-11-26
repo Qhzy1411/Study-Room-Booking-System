@@ -20,11 +20,11 @@
 <polyline points="650,260 650,470" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
 <text x="780" y="375" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" text-anchor="middle" fill="#222">ST-02 扫码签到</text>
 <polyline points="500,215 200,215 200,470" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
-<text x="350" y="285" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" text-anchor="middle" fill="#222">ST-05 取消</text>
-<text x="350" y="317" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" text-anchor="middle" fill="#222">ST-11 停用</text>
+<text x="350" y="285" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" text-anchor="middle" fill="#222">ST-05 取消 / ST-11 停用</text>
+<text x="350" y="317" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" text-anchor="middle" fill="#222">ST-04 占座保护到期</text>
 <polyline points="800,215 1030,215" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
 <text x="915" y="145" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" text-anchor="middle" fill="#222">ST-04</text>
-<text x="915" y="177" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" text-anchor="middle" fill="#222">签到到期</text>
+<text x="915" y="177" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" text-anchor="middle" fill="#222">普通签到到期</text>
 <polyline points="800,515 1030,515" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
 <text x="915" y="440" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" text-anchor="middle" fill="#222">ST-10</text>
 <text x="915" y="472" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" text-anchor="middle" fill="#222">立即停用</text>
