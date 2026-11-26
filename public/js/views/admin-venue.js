@@ -15,28 +15,40 @@ const TABS = [
   ['reviews', '评价管理'],
 ];
 
-const state = {
-  rooms: [],
-  roomId: null,
-  tab: 'seats',
-  detail: null,
-  loading: true,
-  liveDate: '',
-  liveRows: null,
-  qrSheet: null,
-  reviews: null,
-  preview: null,
-  includeExpired: false,
-  form: { seatId: '', immediate: true, startAt: '', endAt: '', reason: '' },
-};
-
 const timeInput = (ts) => `${beijingDate(ts)}T${beijingTime(ts)}`;
 
 export async function renderAdminVenue(container, { navigate }) {
+  function newSuspensionForm() {
+    return { seatId: '', immediate: true, startAt: '', endAt: '', reason: '' };
+  }
+  const state = {
+    rooms: [],
+    roomId: null,
+    tab: 'seats',
+    detail: null,
+    loading: true,
+    planMonth: '',
+    liveDate: '',
+    liveRows: null,
+    qrSheet: null,
+    reviews: null,
+    preview: null,
+    cleared: false,
+    includeExpired: false,
+    form: newSuspensionForm(),
+  };
+  let previewSequence = 0;
+  function invalidatePreview() {
+    previewSequence++;
+    state.preview = null;
+    state.cleared = false;
+  }
+
   let disposed = false;
   const root = h('div', { class: 'stack-20' });
   container.append(root);
   state.liveDate = beijingDate();
+  state.planMonth = state.liveDate.slice(0, 7);
 
   async function loadRooms() {
     try {
@@ -48,7 +60,14 @@ export async function renderAdminVenue(container, { navigate }) {
     }
   }
 
+  let detailRequest = 0;
+  let panelRequest = 0;
+  let panelError = '';
   async function loadDetail() {
+    const request = ++detailRequest;
+    invalidatePreview();
+    panelRequest++;
+    panelError = '';
     if (!state.roomId) {
       state.detail = null;
       state.loading = false;
@@ -58,58 +77,63 @@ export async function renderAdminVenue(container, { navigate }) {
     state.loading = true;
     renderAll();
     try {
-      state.detail = await api.get(`/admin/rooms/${state.roomId}`);
+      const detail = await api.get(`/admin/rooms/${state.roomId}${qs({ planMonth: state.planMonth })}`);
+      if (disposed || request !== detailRequest) return;
+      state.detail = detail;
       if (state.detail.seats?.length && !state.form.seatId) state.form.seatId = state.detail.seats[0].id;
       if (!state.form.startAt) state.form.startAt = timeInput(now());
       if (!state.form.endAt) state.form.endAt = timeInput(now() + 2 * 3600 * 1000);
     } catch (error) {
+      if (disposed || request !== detailRequest) return;
       toast(error instanceof ApiError ? error.message : '加载场地详情失败', 'error');
       state.detail = null;
-    } finally {
-      state.loading = false;
+    }
+    state.loading = false;
+    await loadActivePanel();
+  }
+
+  async function loadActivePanel() {
+    const request = ++panelRequest;
+    const roomId = state.roomId;
+    panelError = '';
+    const panels = {
+      live: ['liveRows', () => api.get(`/admin/reservations${qs({ roomId, date: state.liveDate })}`).then(data => data.reservations)],
+      qr: ['qrSheet', () => api.get(`/admin/rooms/${roomId}/qr-sheet`)],
+      reviews: ['reviews', () => api.get(`/admin/evaluations${qs({ roomId })}`).then(data => data.evaluations)],
+    };
+    const panel = panels[state.tab];
+    if (!panel || !state.detail || state.loading) {
       renderAll();
+      return;
     }
-  }
-
-  async function loadLive() {
-    if (!state.roomId) return;
+    const [field, fetchData] = panel;
+    state[field] = null;
+    renderAll();
     try {
-      const data = await api.get(`/admin/reservations${qs({ roomId: state.roomId, date: state.liveDate })}`);
-      if (disposed) return;
-      state.liveRows = data.reservations;
+      const value = await fetchData();
+      if (disposed || request !== panelRequest) return;
+      state[field] = value;
     } catch (error) {
-      toast(error.message || '加载现场预约失败', 'error');
+      if (disposed || request !== panelRequest) return;
+      panelError = error.message || '场地数据加载失败';
     }
     renderAll();
   }
 
-  async function loadQr() {
-    try {
-      state.qrSheet = await api.get(`/admin/rooms/${state.roomId}/qr-sheet`);
-    } catch (error) {
-      toast(error.message || '加载二维码失败', 'error');
-    }
-    renderAll();
-  }
-
-  async function loadReviews() {
+  function switchRoom(roomId) {
+    state.roomId = roomId;
+    state.detail = null;
+    state.liveRows = null;
+    state.qrSheet = null;
     state.reviews = null;
-    renderAll();
-    try {
-      const data = await api.get(`/admin/evaluations?roomId=${encodeURIComponent(state.roomId)}`);
-      state.reviews = data.evaluations;
-    } catch (error) {
-      toast(error.message || '加载评价失败', 'error');
-    }
-    renderAll();
+    state.form = newSuspensionForm();
+    loadDetail();
   }
 
   function setTab(tab) {
+    if (state.tab !== tab) invalidatePreview();
     state.tab = tab;
-    renderAll();
-    if (tab === 'live' && !state.liveRows) loadLive();
-    if (tab === 'qr' && !state.qrSheet) loadQr();
-    if (tab === 'reviews') loadReviews();
+    loadActivePanel();
   }
 
   function facilityDialog(seat) {
@@ -203,6 +227,7 @@ export async function renderAdminVenue(container, { navigate }) {
 
   function renderPlans() {
     const plans = state.detail.plans || [];
+    const roomId = state.roomId;
     const from = h('input', { type: 'date', value: beijingDate() });
     const to = h('input', { type: 'date', value: beijingDate() });
     const start = h('input', { type: 'time', step: 900, value: '08:00' });
@@ -214,9 +239,12 @@ export async function renderAdminVenue(container, { navigate }) {
       submit.disabled = true;
       error.textContent = '';
       try {
-        const result = await api.post(`/admin/rooms/${state.roomId}/plans`, {
-          dateFrom: from.value, dateTo: to.value, start: start.value, end: end.value, note: note.value,
+        const dateFrom = from.value;
+        const result = await api.post(`/admin/rooms/${roomId}/plans`, {
+          dateFrom, dateTo: to.value, start: start.value, end: end.value, note: note.value,
         });
+        if (disposed || roomId !== state.roomId || state.tab !== 'plans') return;
+        state.planMonth = dateFrom.slice(0, 7);
         toast(`已发布 ${result.plans.length} 天开放计划`);
         await loadDetail();
       } catch (err) {
@@ -240,7 +268,16 @@ export async function renderAdminVenue(container, { navigate }) {
         ),
       ),
       h('div', { class: 'card' },
-        h('div', { class: 'card-head' }, h('h2', {}, `已发布计划（${plans.length}）`)),
+        h('div', { class: 'card-head' },
+          h('h2', {}, `已发布计划（${plans.length}）`),
+          h('label', { class: 'row' }, '查询月份', h('input', {
+            type: 'month', value: state.planMonth,
+            on: { change: (event) => {
+              state.planMonth = event.target.value || beijingDate().slice(0, 7);
+              loadDetail();
+            } },
+          })),
+        ),
         plans.length
           ? h('div', { class: 'table-wrap' }, h('table', { class: 'data' },
             h('thead', {}, h('tr', {}, h('th', {}, '日期'), h('th', {}, '开放时段'), h('th', {}, '备注'))),
@@ -250,7 +287,7 @@ export async function renderAdminVenue(container, { navigate }) {
               h('td', {}, plan.note || '—'),
             ))),
           ))
-          : h('div', { class: 'card-body' }, h('p', { class: 'muted' }, '该场地暂无开放计划，学生将无法预约。')),
+          : h('div', { class: 'card-body' }, h('p', { class: 'muted' }, '所选月份暂无已发布计划。')),
       ),
     );
   }
@@ -259,34 +296,44 @@ export async function renderAdminVenue(container, { navigate }) {
     const seats = state.detail.seats.filter((s) => !s.archived);
     if (seats.length && !seats.some((s) => s.id === state.form.seatId)) state.form.seatId = seats[0].id;
     const form = state.form;
+    const previewPanel = h('div', { hidden: !state.preview });
+    function edit(field, value) {
+      if (form[field] === value) return;
+      form[field] = value;
+      invalidatePreview();
+      previewPanel.hidden = true;
+    }
     const seatSelect = h('select', {
-      on: { change: (event) => { form.seatId = event.target.value; } },
+      on: { change: (event) => { edit('seatId', event.target.value); } },
     }, seats.map((s) => h('option', { value: s.id, selected: s.id === form.seatId }, `${s.code}${s.power.status === 'faulty' ? '（插座故障）' : ''}`)));
     const immediate = h('input', {
       type: 'checkbox', checked: form.immediate,
-      on: { change: (event) => { form.immediate = event.target.checked; renderAll(); } },
+      on: { change: (event) => { edit('immediate', event.target.checked); renderAll(); } },
     });
     const start = h('input', {
       type: 'datetime-local', value: form.startAt, disabled: form.immediate,
-      on: { change: (event) => { form.startAt = event.target.value; } },
+      on: { change: (event) => { edit('startAt', event.target.value); } },
     });
     const end = h('input', {
       type: 'datetime-local', value: form.endAt,
-      on: { change: (event) => { form.endAt = event.target.value; } },
+      on: { change: (event) => { edit('endAt', event.target.value); } },
     });
     const reason = h('input', {
       type: 'text', maxlength: 120, value: form.reason, placeholder: '例如：设施检修、插座更换',
-      on: { input: (event) => { form.reason = event.target.value; } },
+      on: { input: (event) => { edit('reason', event.target.value); } },
     });
     const error = h('p', { style: { color: 'var(--danger)', fontSize: '13px' } });
-    let cleared = false;
     const clearedCheck = h('input', {
       type: 'checkbox',
-      on: { change: (event) => { cleared = event.target.checked; renderAll(); } },
+      checked: state.cleared,
+      on: { change: (event) => { state.cleared = event.target.checked; renderAll(); } },
     });
 
     const previewBtn = h('button', { class: 'btn', type: 'button' }, '预览影响');
     previewBtn.addEventListener('click', async () => {
+      invalidatePreview();
+      const sequence = previewSequence;
+      previewPanel.hidden = true;
       error.textContent = '';
       try {
         const preview = await api.post('/admin/suspensions/preview', {
@@ -296,22 +343,22 @@ export async function renderAdminVenue(container, { navigate }) {
           endAt: form.endAt.replace('T', ' '),
           reason: form.reason,
         });
-        state.preview = preview;
-        cleared = false;
+        if (disposed || sequence !== previewSequence) return;
+        state.preview = { ...preview, requestKey: newKey() };
         renderAll();
       } catch (err) {
-        state.preview = null;
-        error.textContent = err.message || '预览失败';
-        renderAll();
+        if (!disposed && sequence === previewSequence) error.textContent = err.message || '预览失败';
       }
     });
 
     async function commit() {
-      if (!state.preview) return;
-      if (state.preview.needClearance && !cleared) {
+      if (!preview || preview !== state.preview || preview.submitting) return;
+      if (state.preview.needClearance && !state.cleared) {
         toast('请先确认现场已清场', 'warn');
         return;
       }
+      preview.submitting = true;
+      submit.disabled = true;
       try {
         await api.post('/admin/suspensions', {
           seatId: form.seatId,
@@ -319,18 +366,22 @@ export async function renderAdminVenue(container, { navigate }) {
           startAt: form.immediate ? null : form.startAt.replace('T', ' '),
           endAt: form.endAt.replace('T', ' '),
           reason: form.reason,
-          cleared,
+          cleared: state.cleared,
           impactHash: state.preview.impactHash,
-        }, { idempotencyKey: newKey() });
+        }, { idempotencyKey: preview.requestKey });
+        if (disposed || state.preview !== preview) return;
         toast('停用已提交，受影响预约已按规则处置');
-        state.preview = null;
+        invalidatePreview();
         await loadDetail();
       } catch (err) {
+        if (disposed || state.preview !== preview) return;
         if (err.status === 409) {
           toast('影响集合已变化，请重新预览后再提交', 'warn');
-          state.preview = null;
+          invalidatePreview();
           renderAll();
         } else {
+          preview.submitting = false;
+          renderAll();
           toast(err.message || '提交失败', 'error');
         }
       }
@@ -339,10 +390,32 @@ export async function renderAdminVenue(container, { navigate }) {
     const preview = state.preview;
     const submit = h('button', {
       class: 'btn primary', type: 'button',
-      disabled: !preview || (preview.needClearance && !cleared),
+      disabled: !preview || preview.submitting || (preview.needClearance && !state.cleared),
       on: { click: commit },
     }, '确认停用');
     const suspensions = (state.detail.suspensions || []).filter((s) => state.includeExpired || s.status === 'active');
+
+    if (preview) previewPanel.append(h('div', { class: 'card', style: { background: '#fbfcfe' } },
+      h('div', { class: 'card-body stack' },
+        h('div', { class: 'row between' },
+          h('strong', {}, `影响预览 · ${preview.seat?.code || form.seatId}`),
+          h('span', { class: 'small muted' }, `${preview.startAt} — ${preview.endAt}`),
+        ),
+        preview.affected.length
+          ? h('div', { class: 'impact-list' }, preview.affected.map((r) => h('div', { class: `impact-item ${r.status !== 'pending' ? 'danger' : ''}` },
+            h('div', { class: 'row between' },
+              h('span', { class: 'strong' }, r.userName || r.userId),
+              statusBadge(r.status),
+            ),
+            h('div', { class: 'tiny muted' }, `${r.startText}—${r.endText} · ${r.plannedAction}`),
+          )))
+          : h('p', { class: 'small muted' }, '该时段没有受影响的预约。'),
+        preview.needClearance
+          ? h('label', { class: 'check' }, clearedCheck, h('span', { class: 'text' }, '已通知使用者离场，并确认现场已清空'))
+          : null,
+        h('div', { class: 'row' }, submit),
+      ),
+    ));
 
     return h('div', { class: 'stack' },
       section('停用管理', '提交前必须预览影响；立即停用使用中或暂离中的座位需确认现场清场。到达结束时间自动恢复，已取消或关闭的预约不会复活。'),
@@ -357,29 +430,7 @@ export async function renderAdminVenue(container, { navigate }) {
             h('div', { class: 'field' }, h('label', {}, '开始时间'), start),
           ),
           h('div', { class: 'row' }, previewBtn, error),
-          preview
-            ? h('div', { class: 'card', style: { background: '#fbfcfe' } },
-              h('div', { class: 'card-body stack' },
-                h('div', { class: 'row between' },
-                  h('strong', {}, `影响预览 · ${preview.seat?.code || form.seatId}`),
-                  h('span', { class: 'small muted' }, `${preview.startAt} — ${preview.endAt}`),
-                ),
-                preview.affected.length
-                  ? h('div', { class: 'impact-list' }, preview.affected.map((r) => h('div', { class: `impact-item ${r.status !== 'pending' ? 'danger' : ''}` },
-                    h('div', { class: 'row between' },
-                      h('span', { class: 'strong' }, r.userName || r.userId),
-                      statusBadge(r.status),
-                    ),
-                    h('div', { class: 'tiny muted' }, `${r.startText}—${r.endText} · ${r.plannedAction}`),
-                  )))
-                  : h('p', { class: 'small muted' }, '该时段没有受影响的预约。'),
-                preview.needClearance
-                  ? h('label', { class: 'check' }, clearedCheck, h('span', { class: 'text' }, '已通知使用者离场，并确认现场已清空'))
-                  : null,
-                h('div', { class: 'row' }, submit),
-              ),
-            )
-            : null,
+          previewPanel,
         ),
       ),
       h('div', { class: 'card' },
@@ -446,9 +497,9 @@ export async function renderAdminVenue(container, { navigate }) {
       h('div', { class: 'card toolbar-card' },
         h('div', { class: 'field' }, h('label', {}, '日期'), h('input', {
           type: 'date', value: state.liveDate,
-          on: { change: (event) => { state.liveDate = event.target.value; state.liveRows = null; loadLive(); } },
+          on: { change: (event) => { state.liveDate = event.target.value; state.liveRows = null; loadActivePanel(); } },
         })),
-        h('button', { class: 'btn', type: 'button', on: { click: loadLive } }, icon('refresh'), '刷新'),
+        h('button', { class: 'btn', type: 'button', on: { click: loadActivePanel } }, icon('refresh'), '刷新'),
       ),
       !rows
         ? h('section', { class: 'card' }, h('div', { class: 'card-body' }, h('p', { class: 'muted' }, '正在加载…')))
@@ -510,7 +561,7 @@ export async function renderAdminVenue(container, { navigate }) {
       const result = await api.post(`/admin/reservations/${row.id}/assist-checkin`, { note });
       toast(result.alreadyCheckedIn ? '该预约已签到，无需重复操作' : '辅助签到成功');
       state.liveRows = null;
-      await loadLive();
+      await loadActivePanel();
     } catch (error) {
       toast(error.message || '辅助签到失败', 'error');
     }
@@ -548,7 +599,7 @@ export async function renderAdminVenue(container, { navigate }) {
                   try {
                     await api.post(`/admin/evaluations/${row.id}/hide`, { reason: reasonText, hidden });
                     toast(hidden ? '评价文字已隐藏' : '评价文字已恢复');
-                    await loadReviews();
+                    await loadActivePanel();
                   } catch (err) { toast(err.message, 'error'); }
                 } },
               }, row.visibility === 'hidden' ? '恢复文字' : '隐藏文字'),
@@ -576,7 +627,7 @@ export async function renderAdminVenue(container, { navigate }) {
         h('div', { class: 'head-actions' },
           h('select', {
             style: { minWidth: '200px' },
-            on: { change: (event) => { state.roomId = event.target.value; state.detail = null; state.liveRows = null; state.qrSheet = null; loadDetail(); } },
+            on: { change: (event) => { switchRoom(event.target.value); } },
           }, state.rooms.map((r) => h('option', { value: r.id, selected: r.id === state.roomId }, roomText(r)))),
           h('button', { class: 'btn sm', type: 'button', on: { click: () => { state.detail = null; loadDetail(); } } }, icon('refresh'), '刷新'),
         ),
@@ -585,9 +636,12 @@ export async function renderAdminVenue(container, { navigate }) {
         type: 'button', role: 'tab', 'aria-selected': state.tab === value ? 'true' : 'false',
         on: { click: () => setTab(value) },
       }, label))),
-      state.loading || !state.detail
+      state.loading
         ? h('section', { class: 'card' }, h('div', { class: 'card-body' }, h('p', { class: 'muted' }, '正在加载场地信息…')))
-        : state.tab === 'seats' ? renderSeats()
+        : !state.detail ? emptyState('场地详情加载失败', '请点击刷新重试。')
+          : panelError ? h('div', { class: 'notice', role: 'alert' }, panelError,
+            h('button', { type: 'button', class: 'btn sm', on: { click: loadActivePanel } }, '重试'))
+          : state.tab === 'seats' ? renderSeats()
           : state.tab === 'plans' ? renderPlans()
             : state.tab === 'suspension' ? renderSuspension()
               : state.tab === 'qr' ? renderQr()
