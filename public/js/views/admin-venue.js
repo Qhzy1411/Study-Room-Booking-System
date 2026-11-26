@@ -156,7 +156,7 @@ export async function renderAdminVenue(container, { navigate }) {
       save.disabled = true;
       try {
         await api.patch(`/admin/seats/${seat.id}/facility`, { status, note: note.value.trim() });
-        toast(`${seat.code} 设施状态已更新，筛选与推荐将同步变化`);
+        toast(`${seat.code} 插座状态已更新`);
         dialog.close();
         await loadDetail();
       } catch (err) {
@@ -167,7 +167,7 @@ export async function renderAdminVenue(container, { navigate }) {
     const dialog = openModal({
       title: `设施核实 · ${seat.code}`,
       body: h('div', { class: 'stack' },
-        h('div', { class: 'notice' }, '设施修复只更新设施状态，不自动撤销另行设置的停用安排。'),
+        h('div', { class: 'notice' }, '座位若另有停用安排，请在“停用管理”中恢复。'),
         h('div', { class: 'field' }, h('label', {}, '插座状态'), select),
         inputField('核实说明', note),
         error,
@@ -181,7 +181,7 @@ export async function renderAdminVenue(container, { navigate }) {
     const reason = await promptDialog({
       title: archived ? `归档座位 ${seat.code}` : `恢复座位 ${seat.code}`,
       label: '操作理由',
-      message: archived ? '归档保留历史引用，不硬删除；仍有未结束预约时系统会拒绝。' : '恢复后重新参与座位查询与推荐。',
+      message: archived ? '归档后，学生无法预约该座位。' : '恢复后，学生可预约该座位。',
       required: true,
       multiline: true,
     });
@@ -198,7 +198,7 @@ export async function renderAdminVenue(container, { navigate }) {
   function renderSeats() {
     const seats = state.detail.seats;
     return h('div', { class: 'stack' },
-      section('座位与设施', '设施状态变化同步影响预约筛选与推荐；座位有历史引用时只归档、不删除。'),
+      section('座位与设施'),
       h('div', { class: 'table-wrap' }, h('table', { class: 'data' },
         h('thead', {}, h('tr', {},
           h('th', {}, '座位'), h('th', {}, '插座'), h('th', {}, '当前占用'), h('th', {}, '未来预约'), h('th', {}, '状态'), h('th', { class: 'actions-cell' }, '操作'),
@@ -222,7 +222,7 @@ export async function renderAdminVenue(container, { navigate }) {
           ),
         ))),
       )),
-      h('p', { class: 'tiny muted' }, '提示：设备故障导致座位不可继续使用时，请改用“停用管理”，先预览受影响预约再处置。'),
+      h('p', { class: 'tiny muted' }, '座位无法使用时，请在“停用管理”中停用。'),
     );
   }
 
@@ -255,7 +255,7 @@ export async function renderAdminVenue(container, { navigate }) {
       }
     });
     return h('div', { class: 'stack' },
-      section('开放计划', '计划按日期版本化；缩短开放时段若影响已有有效预约会被拒绝，请先通过停用流程处理。'),
+      section('开放计划', '缩短开放时段前，请先通过“停用管理”处理受影响的预约。'),
       h('div', { class: 'card' },
         h('div', { class: 'card-body stack' },
           h('div', { class: 'form-grid' },
@@ -384,13 +384,13 @@ export async function renderAdminVenue(container, { navigate }) {
           impactHash: state.preview.impactHash,
         }, { idempotencyKey: preview.requestKey });
         if (disposed || state.preview !== preview) return;
-        toast('停用已提交，受影响预约已按规则处置');
+        toast('停用已提交');
         invalidatePreview();
         await loadDetail();
       } catch (err) {
         if (disposed || state.preview !== preview) return;
         if (err.status === 409) {
-          toast('影响集合已变化，请重新预览后再提交', 'warn');
+          toast('受影响的预约已变化，请重新预览', 'warn');
           invalidatePreview();
           renderAll();
         } else {
@@ -432,13 +432,13 @@ export async function renderAdminVenue(container, { navigate }) {
     ));
 
     return h('div', { class: 'stack' },
-      section('停用管理', '提交前必须预览影响；立即停用使用中或暂离中的座位需确认现场清场。到达结束时间自动恢复，已取消或关闭的预约不会复活。'),
+      section('停用管理', '停用到期后，座位自动恢复。'),
       h('div', { class: 'card' },
         h('div', { class: 'card-body stack' },
           h('div', { class: 'form-grid' },
             inputField('目标座位', seatSelect),
             inputField('停用原因', reason),
-            h('label', { class: 'check span-2' }, immediate, h('span', { class: 'text' }, '立即停用（开始时间取当前业务时间）')),
+            h('label', { class: 'check span-2' }, immediate, h('span', { class: 'text' }, '立即停用')),
             inputField('开始时间', start, { required: !form.immediate }),
             inputField('结束时间', end),
           ),
@@ -471,7 +471,7 @@ export async function renderAdminVenue(container, { navigate }) {
                       if (!reasonText) return;
                       try {
                         await api.post(`/admin/suspensions/${s.id}/restore`, { reason: reasonText });
-                        toast('已提前恢复；原已取消或关闭的预约不会复活');
+                        toast('座位已提前恢复');
                         await loadDetail();
                       } catch (err) { toast(err.message, 'error'); }
                     } },
@@ -490,7 +490,7 @@ export async function renderAdminVenue(container, { navigate }) {
       return h('section', { class: 'card' }, h('div', { class: 'card-body' }, h('p', { class: 'muted' }, '正在加载座位二维码…')));
     }
     return h('div', { class: 'stack' },
-      section('桌面二维码', '打印后贴在对应座位桌面；学生扫码后系统校验本人预约、目标座位与签到窗口。', h('button', { class: 'btn', type: 'button', on: { click: () => window.print() } }, icon('print'), '打印')),
+      section('桌面二维码', '打印后贴在对应座位上。', h('button', { class: 'btn', type: 'button', on: { click: () => window.print() } }, icon('print'), '打印')),
       h('div', { class: 'card' },
         h('div', { class: 'card-body' },
           h('div', { class: 'code-list' }, state.qrSheet.seats.map((seat) => h('div', { class: 'qr-item' },
@@ -499,14 +499,13 @@ export async function renderAdminVenue(container, { navigate }) {
           ))),
         ),
       ),
-      h('p', { class: 'tiny muted' }, '静态二维码仅用于识别场地与座位，不代表持续在座，也不能单独作为防代签证明。'),
     );
   }
 
   function renderLive() {
     const rows = state.liveRows;
     return h('div', { class: 'stack' },
-      section('现场预约', '按授权场地查询当前业务状态与登记使用情况；登记状态不等于实际在座，现场事实由管理员核实。'),
+      section('现场预约', '登记状态仅供参考，请以现场核实为准。'),
       h('div', { class: 'card toolbar-card' },
         h('div', { class: 'field' }, h('label', {}, '日期'), h('input', {
           type: 'date', value: state.liveDate,
@@ -533,7 +532,7 @@ export async function renderAdminVenue(container, { navigate }) {
               ),
             ))),
           )))
-          : h('section', { class: 'card' }, h('div', { class: 'card-body' }, emptyState('该日期没有预约', '切换日期查看其他记录。'))),
+          : h('section', { class: 'card' }, h('div', { class: 'card-body' }, emptyState('该日期没有预约'))),
     );
   }
 
@@ -565,14 +564,14 @@ export async function renderAdminVenue(container, { navigate }) {
     const note = await promptDialog({
       title: `现场辅助签到 · ${row.seatCode} · ${row.startTime}—${row.endTime}`,
       label: '核实说明',
-      message: '请记录核实方式、现场情况与操作人。辅助签到仍需通过签到窗口校验。',
+      message: '请填写核实方式、现场情况和操作人。',
       required: true,
       multiline: true,
     });
     if (!note) return;
     try {
       const result = await api.post(`/admin/reservations/${row.id}/assist-checkin`, { note });
-      toast(result.alreadyCheckedIn ? '该预约已签到，无需重复操作' : '辅助签到成功');
+      toast(result.alreadyCheckedIn ? '该预约已签到' : '辅助签到成功');
       state.liveRows = null;
       await loadActivePanel();
     } catch (error) {
@@ -586,7 +585,7 @@ export async function renderAdminVenue(container, { navigate }) {
     }
     const rows = state.reviews;
     return h('div', { class: 'stack' },
-      section('评价管理', '每笔已签到且完成的预约最多一条当前评价；隐藏文字须填写理由，评分仍计入房间聚合。'),
+      section('评价管理'),
       rows.length
         ? h('section', { class: 'card' }, h('div', { class: 'table-wrap' }, h('table', { class: 'data' },
           h('thead', {}, h('tr', {}, h('th', {}, '使用时段'), h('th', {}, '学生'), h('th', {}, '评分'), h('th', {}, '文字'), h('th', {}, '可见性'), h('th', { class: 'actions-cell' }, '操作'))),
@@ -604,7 +603,7 @@ export async function renderAdminVenue(container, { navigate }) {
                   const reasonText = await promptDialog({
                     title: hidden ? '隐藏评价文字' : '恢复评价文字',
                     label: '处理理由',
-                    message: hidden ? '隐藏仅影响文字展示，不改变评分与聚合数量。' : '恢复后文字重新可见，历史记录保留。',
+                    message: hidden ? '隐藏文字后，评分仍计入统计。' : '',
                     required: true,
                     multiline: true,
                   });
@@ -619,14 +618,14 @@ export async function renderAdminVenue(container, { navigate }) {
             ),
           ))),
         )))
-        : h('section', { class: 'card' }, h('div', { class: 'card-body' }, emptyState('该场地暂无评价', '已签到且完成的预约可以提交评价。'))),
+        : h('section', { class: 'card' }, h('div', { class: 'card-body' }, emptyState('该场地暂无评价'))),
     );
   }
 
   function renderAll() {
     if (disposed) return;
     if (!state.rooms.length && !state.loading) {
-      setContent(root, h('header', { class: 'page-head' }, h('div', {}, h('h1', {}, '场地管理'), h('p', {}, '当前账号没有可管理的场地。'))),
+      setContent(root, h('header', { class: 'page-head' }, h('div', {}, h('h1', {}, '场地管理'))),
         h('section', { class: 'card' }, h('div', { class: 'card-body' }, emptyState('没有场地授权', '请联系系统管理员分配场地范围。'))));
       return;
     }
@@ -635,7 +634,7 @@ export async function renderAdminVenue(container, { navigate }) {
       h('header', { class: 'page-head' },
         h('div', {},
           h('h1', {}, '场地管理'),
-          h('p', {}, room ? `${room.name} · ${room.building}` : '维护授权场地的座位、设施、开放计划与停用安排。'),
+          h('p', {}, room ? `${room.name} · ${room.building}` : null),
         ),
         h('div', { class: 'head-actions' },
           h('select', {

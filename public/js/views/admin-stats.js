@@ -122,14 +122,14 @@ export async function renderAdminStats(container, { navigate }) {
         h('div', { class: 'card-head' }, h('h2', {}, '各自习室登记使用率'), h('span', { class: 'small muted' }, `${data.date} · 同日同时段`)),
         h('div', { class: 'card-body' },
           barChart({ items: barItems, ariaLabel: '各自习室登记使用率柱状图' }),
-          h('p', { class: 'chart-tip' }, '分母为 0 的场地显示“—”。柱形按授权范围内场地展示。'),
+          h('p', { class: 'chart-tip' }, '“—”表示没有可用座位分钟。'),
         ),
       ),
       h('section', { class: 'card chart-card' },
         h('div', { class: 'card-head' }, h('h2', {}, '登记使用率趋势'), h('span', { class: 'small muted' }, '最近 7 天')),
         h('div', { class: 'card-body' },
           lineChart({ points: linePoints, ariaLabel: '登记使用率 7 日趋势折线图' }),
-          h('p', { class: 'chart-tip' }, '折线按所选场地、各日开放时段计算；无开放日期不连接。'),
+          h('p', { class: 'chart-tip' }, '按所选场地每天的开放时段计算。'),
         ),
       ),
     );
@@ -150,7 +150,6 @@ export async function renderAdminStats(container, { navigate }) {
       h('header', { class: 'page-head' },
         h('div', {},
           h('h1', {}, '数据统计'),
-          h('p', {}, '卡片与图表使用同一快照；登记使用不等于物理在座，统计口径可按公式独立复算。'),
         ),
         h('div', { class: 'head-actions' },
           roomsOptions,
@@ -171,17 +170,17 @@ export async function renderAdminStats(container, { navigate }) {
           on: { change: (event) => changeFilter({ end: event.target.value }) },
         })),
         h('div', { class: 'grow small muted', style: { paddingBottom: '10px' } },
-          '留空表示按开放时段统计；页面可见时每 10 秒刷新。',
+          '留空则按开放时段统计。',
         ),
         state.error && data
-          ? h('span', { class: 'small danger-text', role: 'status' }, `更新失败：${state.error}。已保留上次快照。`)
+          ? h('span', { class: 'small danger-text', role: 'status' }, `更新失败：${state.error}（当前为上次数据）`)
           : null,
         h('span', { class: 'small muted', style: { paddingBottom: '10px' } }, statusText),
       ),
       !state.roomId
         ? h('section', { class: 'card' }, h('div', { class: 'card-body' }, emptyState('没有可查询的场地', '请联系系统管理员分配统计范围。')))
         : state.loading && !data
-          ? h('section', { class: 'card' }, h('div', { class: 'card-body' }, h('p', { class: 'muted' }, '正在计算统计快照…')))
+          ? h('section', { class: 'card' }, h('div', { class: 'card-body' }, h('p', { class: 'muted' }, '正在加载统计…')))
           : state.error && !data
             ? h('section', { class: 'card' }, h('div', { class: 'card-body' },
               h('div', { class: 'notice danger' }, state.error),
@@ -205,7 +204,7 @@ export async function renderAdminStats(container, { navigate }) {
                 renderCharts(),
                 h('section', { class: 'card' },
                   h('div', { class: 'card-head' },
-                    h('h2', {}, '计算口径与说明'),
+                    h('h2', {}, '统计口径'),
                   ),
                   h('div', { class: 'card-body' },
                     h('div', { class: 'stack small', style: { color: 'var(--ink-soft)' } },
@@ -213,7 +212,7 @@ export async function renderAdminStats(container, { navigate }) {
                       h('p', {}, h('strong', {}, '登记使用分钟：'), data.formulas.usage),
                       h('p', {}, h('strong', {}, '登记使用率：'), data.formulas.rate),
                       h('p', {}, h('strong', {}, '事件口径：'), data.formulas.counts),
-                      h('p', { class: 'muted' }, `快照时间 ${data.snapshotText}；当天只统计快照时刻之前已经发生的使用时长，不将未来预约计为使用。`),
+                      h('p', { class: 'muted' }, '当天的使用时长统计截至快照时间。'),
                     ),
                     h('div', { class: 'row', style: { marginTop: '14px' } },
                       h('span', { class: 'badge gray plain' }, `本人取消 ${data.metrics.cancelledBySelf}`),

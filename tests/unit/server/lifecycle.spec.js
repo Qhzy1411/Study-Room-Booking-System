@@ -197,6 +197,6 @@ describe('签到、暂离、签退与到期（AC-05—08、AC-10—12、AC-19）
     await setClock(s1, `${date} 16:00:00`);
     const cancelAtStart = await u02.post(`/reservations/${reservations.cancelAtStart.id}/cancel`, {}, { key: key() });
     expect(cancelAtStart.status).toBe(422);
-    expect(cancelAtStart.json.error.message).toContain('已经开始');
+    expect(cancelAtStart.json.error.message).toContain('已开始');
   });
 });

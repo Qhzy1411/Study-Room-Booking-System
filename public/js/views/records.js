@@ -40,12 +40,10 @@ export async function renderRecords(container, { navigate }) {
         h('div', { class: 'record-title' },
           h('strong', {}, `${v.roomName || ''} · ${v.typeLabel}`.replace(/^ · /, '')),
           plainBadge(v.statusLabel, VIOLATION_TONE[v.status] || 'gray'),
-          plainBadge(v.typeLabel, 'gray'),
         ),
         h('span', { class: 'record-sub' }, v.occurredAtText),
       ),
       h('div', { class: 'meta' },
-        h('span', {}, `场地 ${v.roomName}`),
         v.reservationText ? h('span', {}, `关联预约 ${v.reservationText}`) : null,
       ),
       v.material ? h('div', { class: 'record-note' }, v.material) : null,
@@ -55,12 +53,10 @@ export async function renderRecords(container, { navigate }) {
       v.revokeReason
         ? h('div', { class: 'record-sub' }, `撤销理由：${v.revokeReason}${v.revokedAtText ? `（${v.revokedAtText}）` : ''}`)
         : null,
-      h('div', { class: 'record-actions' },
-        v.canAppeal
-          ? h('button', { class: 'btn sm soft', type: 'button', on: { click: () => appeal(v) } }, icon('chat'), '对记录提出申诉')
-          : h('span', { class: 'small muted' }, '该记录已撤销'),
-        v.status === 'pending' ? h('span', { class: 'small muted' }, '待复核记录不等同处罚，管理员核实后才会生效。') : null,
-      ),
+      v.canAppeal
+        ? h('div', { class: 'record-actions' },
+          h('button', { class: 'btn sm soft', type: 'button', on: { click: () => appeal(v) } }, icon('chat'), '申诉'))
+        : null,
     );
   }
 
@@ -71,7 +67,6 @@ export async function renderRecords(container, { navigate }) {
         h('div', { class: 'record-title' },
           h('strong', {}, `${l.roomName} · 预约限制`),
           plainBadge(state[0], state[1]),
-          plainBadge(l.roomName, 'gray'),
         ),
         h('span', { class: 'record-sub' }, timeRangeText(l.startText, l.endText)),
       ),
@@ -97,7 +92,6 @@ export async function renderRecords(container, { navigate }) {
       h('header', { class: 'page-head' },
         h('div', {},
           h('h1', {}, '违约与限制'),
-          h('p', {}, '查看违约记录、复核结论与预约限制。'),
         ),
         h('div', { class: 'head-actions' },
           h('button', { class: 'btn sm', type: 'button', on: { click: load } }, icon('refresh'), '刷新'),
@@ -118,14 +112,11 @@ export async function renderRecords(container, { navigate }) {
           ? (violations.length
             ? h('div', { class: 'list' }, violations.map(violationCard))
             : h('section', { class: 'card' }, h('div', { class: 'card-body' },
-              emptyState('没有违约记录', '签到截止未签到会生成待复核事件；现场登记也会先进入待复核，不会直接形成处罚。'))))
+              emptyState('没有违约记录'))))
           : (limits.length
             ? h('div', { class: 'list' }, limits.map(limitCard))
             : h('section', { class: 'card' }, h('div', { class: 'card-body' },
-              emptyState('没有预约限制', '限制须以至少一条已生效违规为依据，并写明场地范围、起止时间与理由。')))),
-      h('div', { class: 'notice' },
-        '待复核记录不等同处罚。',
-      ),
+              emptyState('没有预约限制')))),
     );
   }
 

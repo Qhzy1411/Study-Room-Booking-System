@@ -3,7 +3,7 @@ import { api, ApiError } from '../api.js';
 import { refreshUnread } from '../state.js';
 import { h, icon, toast, emptyState, plainBadge } from '../util.js';
 
-export async function renderNotifications(container, { navigate }) {
+export async function renderNotifications(container) {
   let disposed = false;
   let items = [];
   let unread = 0;
@@ -88,7 +88,7 @@ export async function renderNotifications(container, { navigate }) {
       h('div', { class: 'record-actions' },
         item.read ? null : h('button', { class: 'btn sm', type: 'button', on: { click: () => markRead(item) } }, '标记为已读'),
         item.status === 'failed'
-          ? h('span', { class: 'tiny muted' }, `投递失败：${item.lastError || '未知原因'}。业务结果不受影响。`)
+          ? h('span', { class: 'tiny muted' }, item.lastError || '未知原因')
           : null,
       ),
     );
@@ -101,7 +101,6 @@ export async function renderNotifications(container, { navigate }) {
       h('header', { class: 'page-head' },
         h('div', {},
           h('h1', {}, '通知'),
-          h('p', {}, '查看业务结果与投递状态。'),
         ),
         h('div', { class: 'head-actions' },
           h('button', { class: 'btn sm', type: 'button', on: { click: () => load() } }, icon('refresh'), '刷新'),
@@ -115,7 +114,6 @@ export async function renderNotifications(container, { navigate }) {
             on: { click: () => { filter = value; renderAll(); } },
           }, label)),
         ),
-        h('span', { class: 'small muted' }, '每 30 秒自动刷新'),
       ),
       loading
         ? h('section', { class: 'card' }, h('div', { class: 'card-body' }, h('p', { class: 'muted' }, '正在加载通知…')))
@@ -123,13 +121,9 @@ export async function renderNotifications(container, { navigate }) {
           ? h('div', { class: 'list' }, list.map(renderItem))
           : h('section', { class: 'card' }, h('div', { class: 'card-body' },
             emptyState(filter === 'unread' ? '没有未读通知' : '暂无通知',
-              '预约创建、停用处置、违规复核和投诉答复等业务结果会在此显示。',
+              '',
               filter === 'unread' ? h('button', { class: 'btn', type: 'button', on: { click: () => { filter = 'all'; renderAll(); } } }, '查看全部通知') : null),
           )),
-      h('div', { class: 'notice' },
-        '通知偏好可在“个人资料”中调整。',
-        h('button', { class: 'link-btn', type: 'button', on: { click: () => navigate('/profile') } }, '前往个人资料 →'),
-      ),
     );
   }
 

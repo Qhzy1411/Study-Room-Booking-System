@@ -73,7 +73,7 @@ export async function renderAdminComplaints(container, { navigate }) {
     try {
       const result = await api.post(`/admin/complaints/${state.detail.id}/accept`, {});
       state.detail = result.complaint;
-      toast('已受理，投诉进入处理中');
+      toast('投诉已受理');
       await load();
       await loadDetail(state.detail.id);
     } catch (error) {
@@ -98,7 +98,7 @@ export async function renderAdminComplaints(container, { navigate }) {
       });
       state.detail = result.complaint;
       state.reply = '';
-      toast('答复已提交，学生将收到站内通知');
+      toast('答复已提交');
       await load();
       await loadDetail(state.detail.id);
     } catch (error) {
@@ -121,7 +121,7 @@ export async function renderAdminComplaints(container, { navigate }) {
   function renderList() {
     const rows = filtered();
     if (state.loading) return h('p', { class: 'muted' }, '正在加载…');
-    if (!rows.length) return emptyState('没有符合条件的投诉', '切换筛选条件或场地后重试。');
+    if (!rows.length) return emptyState('没有符合条件的投诉');
     return h('div', { class: 'list' }, rows.map((c) => h('button', {
       type: 'button', class: 'record', style: {
         textAlign: 'left', cursor: 'pointer',
@@ -147,14 +147,14 @@ export async function renderAdminComplaints(container, { navigate }) {
   function renderDetail() {
     if (!state.detail) {
       return h('section', { class: 'card' }, h('div', { class: 'card-body' },
-        emptyState('选择一条投诉', '查看原始说明、处理记录并受理或答复。被投诉人不能处理本人相关投诉。')));
+        emptyState('请选择一条投诉')));
     }
     const c = state.detail;
     return h('section', { class: 'card' },
       h('div', { class: 'card-head' },
         h('div', {},
           h('h2', {}, '投诉详情'),
-          h('p', { class: 'card-sub' }, `${c.roomName} · ${c.typeLabel} · ${c.createdAtText} · ${c.userName}`),
+          h('p', { class: 'card-sub' }, `${c.roomName} · ${c.typeLabel} · ${c.userName}`),
         ),
         h('span', { class: `badge ${STATUS_TONE[c.status] || 'gray'}` }, c.statusLabel),
       ),
@@ -167,16 +167,16 @@ export async function renderAdminComplaints(container, { navigate }) {
           c.reservation ? h('dt', {}, '关联预约') : null,
           c.reservation ? h('dd', {}, `${c.reservation.seatCode} 座位 · ${timeRangeText(c.reservation.startText, c.reservation.endText)}`) : null,
           c.violationId ? h('dt', {}, '关联违规') : null,
-          c.violationId ? h('dd', {}, '已关联本人违规记录') : null,
+          c.violationId ? h('dd', {}, c.violationId) : null,
           c.accusedName ? h('dt', {}, '回避') : null,
           c.accusedName ? h('dd', {}, `${c.accusedName} 不能处理本投诉`) : null,
         ),
-        h('div', { class: 'notice' }, c.description),
+        h('div', { class: 'notice', style: { whiteSpace: 'pre-wrap' } }, c.description),
         h('div', {},
           h('h3', { style: { marginBottom: '10px' } }, '处理记录'),
           h('ul', { class: 'timeline' }, c.events.map((event) => h('li', { class: event.kind === 'reply' ? 'tone-success' : '' },
             h('div', { class: 'strong' }, `${event.authorName} · ${event.kind === 'submit' ? '提交' : event.kind === 'accept' ? '受理' : event.kind === 'reply' ? '答复' : event.kind === 'supplement' ? '补充材料' : '关闭'}`),
-            h('div', { style: { whiteSpace: 'pre-wrap' } }, event.body),
+            event.kind !== 'submit' ? h('div', { style: { whiteSpace: 'pre-wrap' } }, event.body) : null,
             h('div', { class: 't' }, event.createdAtText),
           ))),
         ),
@@ -201,15 +201,8 @@ export async function renderAdminComplaints(container, { navigate }) {
             ) : null,
             h('div', { class: 'row' },
               h('button', { class: 'btn primary', type: 'button', disabled: state.busy, on: { click: reply } }, state.busy ? '提交中…' : '提交答复'),
-              h('span', { class: 'tiny muted' }, '提交后学生可在已答复状态下补充材料或确认关闭。'),
             ),
           )
-          : null,
-        c.status === 'answered'
-          ? h('div', { class: 'notice success' }, '已答复，等待学生补充材料或确认关闭。')
-          : null,
-        c.status === 'closed'
-          ? h('div', { class: 'notice' }, '该投诉已由学生确认关闭；原记录与答复保留。')
           : null,
       ),
     );
@@ -224,7 +217,6 @@ export async function renderAdminComplaints(container, { navigate }) {
       h('header', { class: 'page-head' },
         h('div', {},
           h('h1', {}, '投诉处理'),
-          h('p', {}, '投诉与现场问题共用待受理 → 处理中 → 已答复 → 已关闭流程；处理人须回避本人相关投诉。'),
         ),
         h('div', { class: 'head-actions' },
           roomsOptions,
@@ -239,7 +231,6 @@ export async function renderAdminComplaints(container, { navigate }) {
         h('div', { class: 'stack' },
           h('div', { class: 'row between' },
             h('h2', {}, `投诉列表（${filtered().length}）`),
-            h('span', { class: 'small muted' }, '按状态与场地筛选'),
           ),
           renderList(),
         ),

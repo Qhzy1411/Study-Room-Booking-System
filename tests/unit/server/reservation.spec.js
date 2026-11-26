@@ -92,7 +92,7 @@ describe('预约查询与创建（AC-01、AC-02、AC-03、AC-04、AC-17）', () 
   it('同一用户跨座重叠拒绝', async () => {
     const response = await book(u01, { seatId: 'R1-A02', start: '10:30', end: '11:30' });
     expect(response.status).toBe(409);
-    expect(response.json.error.message).toContain('同一用户');
+    expect(response.json.error.message).toContain('此时段已有预约');
   });
 
   it('取消立即释放时段，另一方可在重叠段预约', async () => {

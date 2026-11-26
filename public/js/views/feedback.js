@@ -136,7 +136,7 @@ export async function renderFeedback(container, { navigate, params }) {
       await loadDetail(selectedId);
     } catch (error) {
       if (error.status !== 0) submitKey = null;
-      toast(error instanceof ApiError ? (error.status === 0 ? `${error.message}；网络恢复后可重试，系统不会重复创建投诉。` : error.message) : '提交失败', 'error');
+      toast(error instanceof ApiError ? (error.status === 0 ? '投诉提交结果待确认，请在网络恢复后重试。' : error.message) : '提交失败', 'error');
     } finally {
       busy = false;
       renderAll();
@@ -147,7 +147,7 @@ export async function renderFeedback(container, { navigate, params }) {
     const body = await promptDialog({
       title: '补充材料',
       label: '补充说明',
-      message: '补充后投诉回到处理中，管理员此前的答复会保留。',
+      message: '补充后将重新处理。',
       required: true,
     });
     if (!body) return;
@@ -165,7 +165,7 @@ export async function renderFeedback(container, { navigate, params }) {
   async function closeComplaint() {
     const ok = await confirmDialog({
       title: '确认关闭投诉',
-      message: '确认问题已经解决并关闭投诉？原记录、答复与补充材料仍会保留，关闭后可就其他问题新建投诉。',
+      message: '确认问题已解决并关闭投诉？',
       confirmText: '确认关闭',
     });
     if (!ok) return;
@@ -219,7 +219,6 @@ export async function renderFeedback(container, { navigate, params }) {
               h('option', { value: '' }, '请选择需要申诉的违规记录'),
               violationOptions().map((v) => h('option', { value: v.id, selected: v.id === form.violationId }, `${v.occurredAtText} · ${v.typeLabel} · ${v.statusLabel}`)),
               )),
-              h('p', { class: 'field-hint' }, '只可对本人记录申诉；已撤销的记录无需申诉。'),
             )
             : h('div', { class: 'field span-2' },
               h('label', {}, '关联预约（可选）'),
@@ -248,7 +247,7 @@ export async function renderFeedback(container, { navigate, params }) {
   function renderDetail() {
     if (!complaintDetail) {
       return h('section', { class: 'card' }, h('div', { class: 'card-body' },
-        emptyState('尚未选择投诉', '从左侧列表选择一条记录查看处理进度与答复。')));
+        emptyState('请选择一条投诉')));
     }
     const c = complaintDetail;
     return h('section', { class: 'card' },
@@ -270,12 +269,12 @@ export async function renderFeedback(container, { navigate, params }) {
           c.accusedName ? h('dt', {}, '回避关系') : null,
           c.accusedName ? h('dd', {}, `${c.accusedName}（被投诉/原处理人，不能处理本投诉）`) : null,
         ),
-        h('div', { class: 'notice' }, c.description),
+        h('div', { class: 'notice', style: { whiteSpace: 'pre-wrap' } }, c.description),
         h('div', {},
           h('h3', { style: { marginBottom: '10px' } }, '处理记录'),
           h('ul', { class: 'timeline' }, c.events.map((event) => h('li', { class: event.kind === 'reply' ? 'tone-success' : event.kind === 'supplement' ? 'tone-warn' : '' },
             h('div', { class: 'strong' }, `${event.authorName} · ${event.kind === 'submit' ? '提交投诉' : event.kind === 'accept' ? '受理' : event.kind === 'reply' ? '答复' : event.kind === 'supplement' ? '补充材料' : '确认关闭'}`),
-            h('div', { style: { whiteSpace: 'pre-wrap' } }, event.body),
+            event.kind !== 'submit' ? h('div', { style: { whiteSpace: 'pre-wrap' } }, event.body) : null,
             h('div', { class: 't' }, event.createdAtText),
           ))),
         ),
@@ -285,12 +284,6 @@ export async function renderFeedback(container, { navigate, params }) {
             h('button', { class: 'btn primary', type: 'button', on: { click: closeComplaint } }, '确认问题已解决'),
           )
           : null,
-        c.status === 'closed'
-          ? h('p', { class: 'small muted' }, '该投诉已关闭。')
-          : null,
-        c.status === 'pending' || c.status === 'processing'
-          ? null
-          : null,
       ),
     );
   }
@@ -298,7 +291,7 @@ export async function renderFeedback(container, { navigate, params }) {
   function renderHistory() {
     if (!complaints.length) {
       return h('section', { class: 'card' }, h('div', { class: 'card-body' },
-        emptyState('尚无投诉记录', '提交投诉后可以在这里查看状态与历次答复。')));
+        emptyState('暂无投诉记录')));
     }
     return h('section', { class: 'card' },
       h('div', { class: 'card-head' }, h('h2', {}, `投诉记录（${complaints.length}）`)),
@@ -334,7 +327,6 @@ export async function renderFeedback(container, { navigate, params }) {
       h('header', { class: 'page-head' },
         h('div', {},
           h('h1', {}, '投诉与申诉'),
-          h('p', {}, '提交设施、服务或违约申诉，并查看处理进度。'),
         ),
         h('div', { class: 'head-actions' },
           h('button', { class: 'btn primary', type: 'button', on: { click: newComplaint } }, icon('plus'), '发起新投诉'),
@@ -347,9 +339,6 @@ export async function renderFeedback(container, { navigate, params }) {
           renderHistory(),
         ),
         renderDetail(),
-      ),
-      h('div', { class: 'notice' },
-        '投诉状态：待受理 → 处理中 → 已答复 → 已关闭。',
       ),
     );
   }
