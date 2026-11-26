@@ -27,6 +27,50 @@ function assertStatsRoom(admin, roomId) {
   return room;
 }
 
+/**
+ * 把一座座位的生命周期记录还原成生效区间 [start, end)。
+ * 没有生命周期记录的旧数据按座位创建时间起算；当前已归档但缺少归档时刻的，
+ * 视为创建即归档，不把来源不明的座位计入历史分母。
+ */
+function seatActiveIntervals(seat, history, snapshot) {
+  const intervals = [];
+  let start = seat.created_at;
+  let active = true;
+  for (const event of history) {
+    const at = event.changed_at;
+    if (event.status === 'archived') {
+      if (active) {
+        if (at > start) intervals.push([start, at]);
+        active = false;
+      }
+    } else if (!active) {
+      start = at;
+      active = true;
+    }
+  }
+  if (!history.length) {
+    if (!seat.archived) {
+      intervals.push([start, Infinity]);
+    } else if (seat.archived_at != null && seat.archived_at > start) {
+      // 只有归档时刻明确时才补出生效区间；否则视为创建即归档，避免无来源数据被计入历史。
+      intervals.push([start, seat.archived_at]);
+    }
+    return intervals;
+  }
+  if (seat.archived) {
+    if (active) {
+      const end = seat.archived_at ?? snapshot;
+      if (end > start) intervals.push([start, end]);
+    }
+  } else if (!active) {
+    const restart = seat.archived_at ?? snapshot;
+    if (restart > start) intervals.push([restart, Infinity]);
+  } else {
+    intervals.push([start, Infinity]);
+  }
+  return intervals;
+}
+
 function suspensionIntervals(seatIds, lo, hi) {
   if (!seatIds.length) return new Map();
   const rows = all(
@@ -86,12 +130,46 @@ function dayMetrics(roomId, date, { windowStart = null, windowEnd = null, snapsh
     return base;
   }
 
-  const seats = all('SELECT id FROM seats WHERE room_id = ? AND archived = 0', roomId);
+  // 历史分母必须使用“统计时段内实际生效”的座位，而不是查询时的在册座位：
+  // 事后归档会缩小分母、恢复或新增会放大分母，都会让无变化的历史使用分钟算出不同比率。
+  const seats = all('SELECT * FROM seats WHERE room_id = ?', roomId);
   const seatIds = seats.map((s) => s.id);
-  const bySeat = suspensionIntervals(seatIds, winStart, effEnd);
-  let available = seatIds.length * (effEnd - winStart);
-  for (const intervals of bySeat.values()) {
-    available -= unionLengthClipped(intervals, winStart, effEnd);
+  const histories = seatIds.length
+    ? all(
+        `SELECT * FROM seat_status_history
+          WHERE seat_id IN (${seatIds.map(() => '?').join(',')})
+          ORDER BY seat_id, changed_at, id`,
+        ...seatIds,
+      )
+    : [];
+  const historyBySeat = new Map();
+  for (const event of histories) {
+    if (!historyBySeat.has(event.seat_id)) historyBySeat.set(event.seat_id, []);
+    historyBySeat.get(event.seat_id).push(event);
+  }
+  const activeBySeat = new Map();
+  let available = 0;
+  let seatsCount = 0;
+  for (const seat of seats) {
+    const intervals = seatActiveIntervals(seat, historyBySeat.get(seat.id) || [], snapshot);
+    activeBySeat.set(seat.id, intervals);
+    const activeMinutes = unionLengthClipped(intervals, winStart, effEnd);
+    if (activeMinutes > 0) {
+      available += activeMinutes;
+      seatsCount += 1;
+    }
+  }
+  const suspensions = suspensionIntervals(seatIds, winStart, effEnd);
+  for (const [seatId, suspended] of suspensions) {
+    const overlaps = [];
+    for (const [activeStart, activeEnd] of activeBySeat.get(seatId) || []) {
+      for (const [suspendStart, suspendEnd] of suspended) {
+        const start = Math.max(activeStart, suspendStart);
+        const end = Math.min(activeEnd, suspendEnd);
+        if (end > start) overlaps.push([start, end]);
+      }
+    }
+    available -= unionLengthClipped(overlaps, winStart, effEnd);
   }
 
   const usageRows = all(
@@ -159,7 +237,7 @@ function dayMetrics(roomId, date, { windowStart = null, windowEnd = null, snapsh
   const usageMinutes = Math.round(usage / MINUTE);
   return {
     ...base,
-    seatsCount: seatIds.length,
+    seatsCount,
     window: { start: winStart, end: winEnd, startText: fmt(winStart), endText: fmt(winEnd) },
     availableSeatMinutes: availableMinutes,
     usageMinutes,
@@ -246,7 +324,7 @@ function statsForRoom(admin, { roomId, date, start = null, end = null }) {
     rooms,
     trend,
     formulas: {
-      available: '逐座位计算统计时段内、快照时刻之前的开放分钟，扣除停用分钟后求和；重叠停用只扣一次。',
+      available: '逐座位按创建至归档（含恢复）的生效区间，计算统计时段内、快照时刻之前的开放分钟，扣除停用分钟后求和；重叠停用只扣一次。',
       usage: '逐预约按使用分段计算签到至签退、到期或异常关闭的时长；换座分段不重复计入；扣除暂离时长。',
       rate: '登记使用分钟 ÷ 可用座位分钟 × 100%，保留一位小数；分母为 0 时显示“—”。',
       counts: '预约创建量按创建时刻统计；首次签到量按签到时刻统计；未签到事件按签到截止时刻统计；净生效违规按事件发生日及快照时有效结论统计。',

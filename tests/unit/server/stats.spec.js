@@ -2,7 +2,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { startTestServer } from '../../helpers/server.js';
 import { createApiClient, key, setClock } from '../../helpers/client.js';
-import { at } from '../../../server/time.js';
+import { addDaysLocal, at } from '../../../server/time.js';
 
 let server;
 let db;
@@ -150,5 +150,35 @@ describe('统计口径（AC-16、BR-16、4.3）', () => {
     await m1.login('m1');
     const response = await m1.get(`/admin/stats?roomId=R9&date=${today}`);
     expect(response.status).toBe(403);
+  });
+
+  it('次日归档、恢复或新增座位，不改变历史日期的可用座位分钟与使用率', async () => {
+    const m1 = createApiClient(server.base);
+    await m1.login('m1');
+    const historicalDate = addDaysLocal(today, -1);
+    const statsUrl = `/admin/stats?roomId=R1&date=${historicalDate}`;
+
+    const before = (await m1.get(statsUrl)).json;
+    expect(before.metrics.hasPlan).toBe(true);
+    expect(before.metrics.seatsCount).toBe(16);
+
+    const archived = await m1.patch('/admin/seats/R1-A16', { archived: true, reason: '回归用例：次日归档座位' });
+    expect(archived.status).toBe(200);
+    const afterArchive = (await m1.get(statsUrl)).json;
+    expect(afterArchive.metrics.availableSeatMinutes).toBe(before.metrics.availableSeatMinutes);
+    expect(afterArchive.metrics.usageMinutes).toBe(before.metrics.usageMinutes);
+    expect(afterArchive.metrics.usageRate).toBe(before.metrics.usageRate);
+    expect(afterArchive.metrics.seatsCount).toBe(before.metrics.seatsCount);
+
+    const restored = await m1.patch('/admin/seats/R1-A16', { archived: false, reason: '回归用例：恢复座位' });
+    expect(restored.status).toBe(200);
+    const added = await m1.post('/admin/seats', { roomId: 'R1', code: 'A17' });
+    expect(added.status).toBe(200);
+
+    const afterAdd = (await m1.get(statsUrl)).json;
+    expect(afterAdd.metrics.availableSeatMinutes).toBe(before.metrics.availableSeatMinutes);
+    expect(afterAdd.metrics.usageMinutes).toBe(before.metrics.usageMinutes);
+    expect(afterAdd.metrics.usageRate).toBe(before.metrics.usageRate);
+    expect(afterAdd.metrics.seatsCount).toBe(before.metrics.seatsCount);
   });
 });

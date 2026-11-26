@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import config from './config.js';
+import { parseDate } from './time.js';
 
 fs.mkdirSync(config.dataDir, { recursive: true });
 
@@ -62,9 +63,21 @@ CREATE TABLE IF NOT EXISTS seats (
   code TEXT NOT NULL,
   near_window INTEGER NOT NULL DEFAULT 0,
   archived INTEGER NOT NULL DEFAULT 0,
+  archived_at INTEGER,
   created_at INTEGER NOT NULL,
   UNIQUE (room_id, code)
 );
+
+CREATE TABLE IF NOT EXISTS seat_status_history (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  seat_id TEXT NOT NULL REFERENCES seats(id),
+  room_id TEXT NOT NULL,
+  status TEXT NOT NULL CHECK (status IN ('active', 'archived')),
+  changed_at INTEGER NOT NULL,
+  actor_id TEXT,
+  reason TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_seat_status_seat ON seat_status_history (seat_id, changed_at, id);
 
 CREATE TABLE IF NOT EXISTS facilities (
   seat_id TEXT NOT NULL REFERENCES seats(id),
@@ -426,6 +439,48 @@ if (!reservationColumns.includes('checkin_protected_until')) {
 if (!db.prepare('PRAGMA table_info(complaints)').all().some((column) => column.name === 'is_occupancy')) {
   db.exec('ALTER TABLE complaints ADD COLUMN is_occupancy INTEGER NOT NULL DEFAULT 0');
 }
+if (!db.prepare('PRAGMA table_info(seats)').all().some((column) => column.name === 'archived_at')) {
+  db.exec('ALTER TABLE seats ADD COLUMN archived_at INTEGER');
+}
+
+/**
+ * 为升级前的既有座位补一条“生效起点”记录。
+ * 旧版本没有座位生命周期，统计一律按当前未归档座位计算；这里以场地最早的计划/预约时间
+ * 作为起点，保证升级当次的历史统计不会被清零，后续创建、归档、恢复则按真实时刻记入。
+ */
+function backfillSeatStatusHistory() {
+  const seats = db
+    .prepare(
+      `SELECT s.* FROM seats s
+        WHERE NOT EXISTS (SELECT 1 FROM seat_status_history h WHERE h.seat_id = s.id)`,
+    )
+    .all();
+  if (!seats.length) return;
+  const insert = db.prepare(
+    `INSERT INTO seat_status_history (seat_id, room_id, status, changed_at, actor_id, reason)
+     VALUES (?, ?, ?, ?, NULL, ?)`,
+  );
+  const roomStmt = db.prepare('SELECT created_at FROM rooms WHERE id = ?');
+  const planStmt = db.prepare('SELECT MIN(date) AS date FROM open_plans WHERE room_id = ?');
+  const reservationStmt = db.prepare('SELECT MIN(start_ts) AS start_ts FROM reservations WHERE room_id = ?');
+  for (const seat of seats) {
+    const room = roomStmt.get(seat.room_id);
+    const planDate = planStmt.get(seat.room_id)?.date;
+    const reservationStart = reservationStmt.get(seat.room_id)?.start_ts;
+    const starts = [seat.created_at, room?.created_at, planDate ? parseDate(planDate) : null, reservationStart]
+      .filter((value) => value != null);
+    const activeFrom = Math.min(...starts);
+    insert.run(seat.id, seat.room_id, 'active', activeFrom, '历史数据回填：座位生效起点');
+    if (seat.archived) {
+      const archivedAt = seat.archived_at ?? Date.now();
+      if (archivedAt >= activeFrom) {
+        insert.run(seat.id, seat.room_id, 'archived', archivedAt, '历史数据回填：当前归档状态');
+      }
+    }
+  }
+}
+
+backfillSeatStatusHistory();
 
 let depth = 0;
 let savepointSeq = 0;
