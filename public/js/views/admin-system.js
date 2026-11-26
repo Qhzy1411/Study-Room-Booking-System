@@ -171,7 +171,7 @@ export async function renderAdminSystem(container) {
           password: password.value ? password.value : undefined,
           reason: '系统管理员维护账号、角色与授权',
         });
-        toast('账号与授权已更新；相关旧会话已按新权限失效');
+        toast('账号与授权已更新');
         dialog.close();
         await loadAll();
       } catch (err) {
@@ -191,7 +191,7 @@ export async function renderAdminSystem(container) {
         ),
         h('div', { class: 'field' }, h('span', { class: 'field-label' }, '场地授权（仅场地管理员）'), grantsBox),
         h('div', { class: 'field' }, h('span', { class: 'field-label' }, '业务权限'), permsBox),
-        h('div', { class: 'notice' }, '不能禁用最后一名启用的系统管理员，也不能移除其系统管理角色。角色或启用状态变化会使旧会话失效。'),
+        h('div', { class: 'notice' }, '更改角色或停用账号后，该用户的现有会话将失效。'),
         error,
       ),
       footer: [h('button', { class: 'btn ghost', type: 'button', on: { click: () => dialog.close() } }, '取消'), save],
@@ -253,7 +253,6 @@ export async function renderAdminSystem(container) {
           ),
           h('div', { class: 'row' },
             h('button', { class: 'btn primary', type: 'button', on: { click: createUser } }, icon('plus'), '创建账号'),
-            h('span', { class: 'tiny muted' }, '学号标识与用户名创建后不可自改；角色与业务权限可后续调整。'),
           ),
         ),
       ),
@@ -270,7 +269,7 @@ export async function renderAdminSystem(container) {
       ['dailyMinutes', '每日累计时长上限（分钟）', 5, 1440],
     ];
     return h('div', { class: 'stack' },
-      h('div', { class: 'notice' }, '规则版本只影响新预约；已创建预约沿用其原规则版本。发布后当前时间立即生效。'),
+      h('div', { class: 'notice' }, '新规则发布后立即用于新预约。'),
       h('section', { class: 'card' },
         h('div', { class: 'card-head' }, h('h2', {}, '已发布版本')),
         h('div', { class: 'table-wrap' }, h('table', { class: 'data' },
@@ -307,7 +306,6 @@ export async function renderAdminSystem(container) {
                 await loadAll();
               } catch (error) { toast(error.message || '发布失败', 'error'); }
             } } }, '发布规则'),
-            h('span', { class: 'tiny muted' }, '参数必须为正整数并满足上下限；无效值拒绝发布。'),
           ),
         ),
       ),
@@ -322,7 +320,7 @@ export async function renderAdminSystem(container) {
           type: 'search', value: state.auditAction, placeholder: '例如 violation / suspension',
           on: { change: (event) => { state.auditAction = event.target.value; renderAll(); } },
         })),
-        h('span', { class: 'small muted', style: { paddingTop: '24px' } }, `显示 ${rows.length} 条；普通业务角色不可修改审计记录。`),
+        h('span', { class: 'small muted', style: { paddingTop: '24px' } }, `显示 ${rows.length} 条`),
       ),
       h('div', { class: 'table-wrap' }, h('table', { class: 'data' },
         h('thead', {}, h('tr', {}, h('th', {}, '时间'), h('th', {}, '操作人'), h('th', {}, '动作'), h('th', {}, '对象'), h('th', {}, '结果'), h('th', {}, '理由'), h('th', { class: 'actions-cell' }, '详情'))),
@@ -359,7 +357,6 @@ export async function renderAdminSystem(container) {
 
   function renderNotifications() {
     return h('div', { class: 'stack' },
-      h('div', { class: 'notice' }, '站内通知按事件与接收者去重；发送失败不回滚业务。可注入一次投递失败并重试，用于 AC-28 验证。'),
       h('div', { class: 'table-wrap' }, h('table', { class: 'data' },
         h('thead', {}, h('tr', {}, h('th', {}, '接收者'), h('th', {}, '标题'), h('th', {}, '状态'), h('th', {}, '尝试'), h('th', {}, '时间'), h('th', {}, '错误'), h('th', { class: 'actions-cell' }, '操作'))),
         h('tbody', {}, state.notifications.map((n) => h('tr', {},
@@ -375,7 +372,7 @@ export async function renderAdminSystem(container) {
                 try {
                   await api.post(`/admin/notifications/${n.id}/inject-failure`, {});
                   await api.post('/admin/tick', {});
-                  toast('已注入一次投递失败（业务不受影响）');
+                  toast('已模拟一次投递失败');
                   await loadAll();
                 } catch (error) { toast(error.message, 'error'); }
               } } }, '模拟失败')
@@ -399,7 +396,7 @@ export async function renderAdminSystem(container) {
   function renderClock() {
     const clock = state.clock;
     return h('div', { class: 'stack' },
-      h('div', { class: 'notice warn' }, '演示时钟会改变所有业务时间判断（签到窗口、到期、暂离、限制、统计快照）。演示结束后请同步北京时间。'),
+      h('div', { class: 'notice warn' }, '调整时间会影响所有用户的预约和签到。演示结束后请同步北京时间。'),
       h('section', { class: 'card' },
         h('div', { class: 'card-head' }, h('h2', {}, '业务时钟'), clock?.demoMode ? plainBadge('演示模式已启用', 'amber') : plainBadge('演示模式关闭', 'gray')),
         h('div', { class: 'card-body stack' },
@@ -436,7 +433,6 @@ export async function renderAdminSystem(container) {
               ),
             ),
           ),
-          h('p', { class: 'tiny muted' }, '重置演示数据（npm run seed）也会恢复真实时间。'),
         ),
       ),
     );
@@ -448,7 +444,6 @@ export async function renderAdminSystem(container) {
       h('header', { class: 'page-head' },
         h('div', {},
           h('h1', {}, '系统管理'),
-          h('p', {}, '维护账号、角色、场地授权、规则版本与审计，并分配业务权限。'),
         ),
         h('div', { class: 'head-actions' },
           h('button', { class: 'btn sm', type: 'button', on: { click: loadAll } }, icon('refresh'), '刷新'),

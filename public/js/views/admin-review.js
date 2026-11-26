@@ -90,8 +90,8 @@ export async function renderAdminReview(container, { navigate }) {
       title: decision === 'effective' ? `确认违规生效 · ${violation.userName} · ${violation.occurredAtText}` : `撤销记录 · ${violation.userName} · ${violation.occurredAtText}`,
       label: decision === 'effective' ? '复核理由与依据' : '撤销理由',
       message: decision === 'effective'
-        ? '请核对事件时间、规则版本和证据。生效记录可作为预约限制依据；待复核记录本身不是处罚。'
-        : '撤销后不计入有效违规；如限制仅依据该记录设置，将同步解除。历史保留。',
+        ? '请核对事件时间、适用规则和证据。'
+        : '仅以此记录为依据的预约限制将一并解除。',
       required: true,
       multiline: true,
     });
@@ -109,7 +109,7 @@ export async function renderAdminReview(container, { navigate }) {
     const reason = await promptDialog({
       title: `撤销生效记录 · ${violation.userName} · ${violation.occurredAtText}`,
       label: '撤销理由与依据',
-      message: '用于申诉成立、故障更正等情况。撤销后同步纠正仅依据该记录的预约限制。',
+      message: '仅以此记录为依据的预约限制将一并解除。',
       required: true,
       multiline: true,
     });
@@ -145,7 +145,7 @@ export async function renderAdminReview(container, { navigate }) {
         material: state.manual.material.trim(),
         reservationId: state.manual.reservationId?.trim() || null,
       });
-      toast(result.duplicated ? '相同事件已登记，返回原记录' : '待复核事件已登记');
+      toast(result.duplicated ? '该事件已登记' : '待复核事件已登记');
       state.manual.material = '';
       state.manual.reservationId = '';
       await load();
@@ -292,9 +292,6 @@ export async function renderAdminReview(container, { navigate }) {
         v.status === 'effective'
           ? h('button', { class: 'btn sm danger', type: 'button', on: { click: () => revokeEffective(v) } }, '撤销生效记录')
           : null,
-        v.status === 'pending'
-          ? h('span', { class: 'small muted' }, '不能直接据此加黑名单')
-          : null,
       ),
     );
   }
@@ -331,7 +328,7 @@ export async function renderAdminReview(container, { navigate }) {
     return rows.length
       ? h('div', { class: 'list' }, rows.map(violationCard))
       : h('section', { class: 'card' }, h('div', { class: 'card-body' },
-        emptyState(status === 'pending' ? '没有待复核记录' : '没有相关记录', status === 'pending' ? '到期未签到与现场登记会先进入待复核。' : '')));
+        emptyState(status === 'pending' ? '没有待复核记录' : '没有相关记录')));
   }
 
   function renderManualTab() {
@@ -352,7 +349,6 @@ export async function renderAdminReview(container, { navigate }) {
       on: { input: (event) => { state.manual.reservationId = event.target.value; } },
     });
     return h('div', { class: 'stack' },
-      h('div', { class: 'notice' }, '手动登记只形成待复核事件；须记录事实、时间、地点和证据，不能直接形成处罚或黑名单。重复事件按自然键去重。'),
       h('section', { class: 'card' },
         h('div', { class: 'card-head' }, h('h2', {}, '登记待复核事件')),
         h('div', { class: 'card-body stack' },
@@ -366,7 +362,6 @@ export async function renderAdminReview(container, { navigate }) {
           ),
           h('div', { class: 'row' },
             h('button', { class: 'btn primary', type: 'button', on: { click: submitManual } }, '登记待复核事件'),
-            h('span', { class: 'tiny muted' }, '缺少学生、事实或场地信息时拒绝登记。'),
           ),
         ),
       ),
@@ -381,7 +376,7 @@ export async function renderAdminReview(container, { navigate }) {
       on: { input: (event) => { state.fault.description = event.target.value; } },
     }, state.fault.description);
     return h('div', { class: 'stack' },
-      h('div', { class: 'notice' }, '登记签到故障后，截止落在故障区间内的未签到记录将自动撤销。'),
+      h('div', { class: 'notice' }, '签到截止在故障时段内的未签到记录将自动撤销。'),
       h('section', { class: 'card' },
         h('div', { class: 'card-head' }, h('h2', {}, '故障登记与纠正')),
         h('div', { class: 'card-body stack' },
@@ -413,7 +408,7 @@ export async function renderAdminReview(container, { navigate }) {
   function renderLimitsTab() {
     const effective = state.student ? effectiveViolationsFor(state.student.id) : [];
     return h('div', { class: 'stack' },
-      h('div', { class: 'notice' }, '预约限制须以至少一条已生效违规为依据，写明场地范围、起止与理由；过期自动失效，可提前解除。限制只阻止新预约，不影响取消、签退、查询与申诉。'),
+      h('div', { class: 'notice' }, '请至少选择一条已生效违规作为依据。限制只影响新预约。'),
       h('section', { class: 'card' },
         h('div', { class: 'card-head' }, h('h2', {}, '创建预约限制')),
         h('div', { class: 'card-body stack' },
@@ -457,7 +452,7 @@ export async function renderAdminReview(container, { navigate }) {
       ),
       state.limits.length
         ? h('div', { class: 'list' }, state.limits.map(limitCard))
-        : h('section', { class: 'card' }, h('div', { class: 'card-body' }, emptyState('暂无预约限制', '限制需由授权管理员依据已生效违规创建。'))),
+        : h('section', { class: 'card' }, h('div', { class: 'card-body' }, emptyState('暂无预约限制'))),
     );
   }
 
@@ -473,7 +468,6 @@ export async function renderAdminReview(container, { navigate }) {
       h('header', { class: 'page-head' },
         h('div', {},
           h('h1', {}, '违约与限制'),
-          h('p', {}, '待复核事件需核对事实与规则后才生效；限制必须写明依据、范围和期限。'),
         ),
         h('div', { class: 'head-actions' },
           h('button', { class: 'btn sm', type: 'button', on: { click: load } }, icon('refresh'), '刷新'),
