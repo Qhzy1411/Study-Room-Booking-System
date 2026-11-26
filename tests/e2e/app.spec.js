@@ -86,6 +86,8 @@ describe.skipIf(!executablePath)('浏览器端到端冒烟（桌面与 390px 移
     await page.waitForSelector('.seat', { timeout: 15000 });
     await page.locator('.seat').filter({ hasText: 'A01' }).first().click();
     await page.waitForFunction(() => document.querySelector('.selected-seat strong')?.textContent === 'A01');
+    await page.getByText('请先勾选预约规则确认项。').waitFor();
+    expect(await page.getByRole('button', { name: '确认预约' }).isEnabled()).toBe(false);
     await page.locator('aside .check input[type="checkbox"]').check();
     await page.getByRole('button', { name: '确认预约' }).click();
     await page.getByRole('heading', { name: '预约成功' }).waitFor({ timeout: 15000 });

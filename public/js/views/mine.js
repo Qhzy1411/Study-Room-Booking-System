@@ -2,7 +2,7 @@ import { setContent, violationTypeLabel } from '../util.js';
 import { api, newKey, ApiError } from '../api.js';
 import {
   h, icon, toast, emptyState, openModal, confirmDialog, promptDialog,
-  statusBadge, durationText, plainBadge,
+  statusBadge, durationText, plainBadge, inputField,
 } from '../util.js';
 import { openScanDialog } from '../scan.js';
 
@@ -444,6 +444,7 @@ export async function renderMine(container, { navigate }) {
     submitBtn.addEventListener('click', async () => {
       if (!description.value.trim()) {
         error.textContent = '请填写现场情况说明';
+        description.focus();
         return;
       }
       submitBtn.disabled = true;
@@ -479,7 +480,7 @@ export async function renderMine(container, { navigate }) {
           `${reservation.roomName} ${reservation.seatCode} · ${timeWindowText(reservation)}。报告问题不会处罚他人，也不会自动改变座位状态；管理员将现场核实。`),
         h('div', { class: 'form-grid' },
           h('div', { class: 'field' }, h('label', {}, '问题类型'), type),
-          h('div', { class: 'field span-2' }, h('label', {}, '现场情况'), description),
+          inputField('现场情况', description, { wide: true }),
         ),
         h('div', { class: 'row' }, submitBtn, error),
         progress,

@@ -58,11 +58,14 @@ export function setContent(el, ...children) {
   return el;
 }
 
+export function requiredMark() {
+  return h('span', { class: 'required-mark', 'aria-hidden': 'true' }, '*');
+}
+
 export function inputField(label, control, { required = true, wide = false } = {}) {
   control.required = required;
   return h('label', { class: wide ? 'field span-2' : 'field' },
-    h('span', { class: 'field-label' }, label,
-      required ? h('span', { class: 'required-mark', 'aria-hidden': 'true' }, '*') : null),
+    h('span', { class: 'field-label' }, label, required ? requiredMark() : null),
     control,
   );
 }

@@ -2,7 +2,7 @@ import { setContent, roomText } from '../util.js';
 import { api, ApiError, qs } from '../api.js';
 import { store, beijingDate, beijingTime, now } from '../state.js';
 import {
-  h, icon, toast, emptyState, plainBadge, promptDialog, debounce, inputField,
+  h, icon, toast, emptyState, plainBadge, promptDialog, debounce, inputField, requiredMark,
 } from '../util.js';
 
 const TABS = [
@@ -222,7 +222,7 @@ export async function renderAdminReview(container, { navigate }) {
     }
   }
 
-  function studentPicker() {
+  function studentPicker(label = '被登记学生') {
     const resultsBox = h('div', { class: 'stack', style: { gap: '6px' } });
     const input = h('input', {
       type: 'search', placeholder: '输入学号、账号或姓名，例如 U01',
@@ -253,15 +253,13 @@ export async function renderAdminReview(container, { navigate }) {
       },
     });
     return h('div', { class: 'field' },
-      h('label', {}, '被登记学生'),
       state.student
         ? h('div', { class: 'row' },
           plainBadge(`${state.student.displayName}（${state.student.username}）`, 'blue'),
           h('button', { class: 'link-btn', type: 'button', on: { click: () => { state.student = null; state.limit.violationIds = new Set(); renderAll(); } } }, '清除'),
         )
-        : input,
+        : inputField(label, input),
       state.student ? null : resultsBox,
-      h('p', { class: 'field-hint' }, '只可按授权场地登记事实；系统不自动认定违规，需经复核后才生效。'),
     );
   }
 
@@ -421,7 +419,7 @@ export async function renderAdminReview(container, { navigate }) {
         h('div', { class: 'card-body stack' },
           h('div', { class: 'form-grid' },
             inputField('限制场地', roomSelect()),
-            studentPicker(),
+            studentPicker('受限学生'),
             inputField('开始时间', h('input', {
               type: 'datetime-local', value: state.limit.startAt,
               on: { change: (event) => { state.limit.startAt = event.target.value; } },
@@ -435,7 +433,7 @@ export async function renderAdminReview(container, { navigate }) {
               on: { input: (event) => { state.limit.reason = event.target.value; } },
             }), { wide: true }),
             h('div', { class: 'field span-2' },
-              h('label', {}, '依据（已生效违规）'),
+              h('span', { class: 'field-label' }, '依据（已生效违规）', requiredMark()),
               state.student
                 ? (effective.length
                   ? h('div', { class: 'list', style: { gap: '6px' } }, effective.map((v) => h('label', { class: 'check' },

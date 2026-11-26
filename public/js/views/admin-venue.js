@@ -3,7 +3,7 @@ import { api, ApiError, newKey, qs } from '../api.js';
 import { beijingDate, beijingTime, now } from '../state.js';
 import {
   h, icon, toast, emptyState, openModal, confirmDialog, promptDialog,
-  plainBadge, statusBadge, section, inputField,
+  plainBadge, statusBadge, section, inputField, requiredMark,
 } from '../util.js';
 
 const TABS = [
@@ -326,7 +326,7 @@ export async function renderAdminVenue(container, { navigate }) {
       on: { input: (event) => { edit('reason', event.target.value); } },
     });
     const clearedCheck = h('input', {
-      type: 'checkbox',
+      type: 'checkbox', required: true,
       checked: state.cleared,
       on: { change: (event) => { state.cleared = event.target.checked; renderAll(); } },
     });
@@ -425,7 +425,7 @@ export async function renderAdminVenue(container, { navigate }) {
           )))
           : h('p', { class: 'small muted' }, '该时段没有受影响的预约。'),
         preview.needClearance
-          ? h('label', { class: 'check' }, clearedCheck, h('span', { class: 'text' }, '已通知使用者离场，并确认现场已清空'))
+          ? h('label', { class: 'check' }, clearedCheck, h('span', { class: 'text' }, '已通知使用者离场，并确认现场已清空', requiredMark()))
           : null,
         h('div', { class: 'row' }, submit),
       ),

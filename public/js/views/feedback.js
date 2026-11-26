@@ -1,6 +1,6 @@
 import { setContent } from '../util.js';
 import { api, newKey, ApiError } from '../api.js';
-import { h, icon, toast, emptyState, plainBadge, promptDialog, confirmDialog, roomText } from '../util.js';
+import { h, icon, toast, emptyState, plainBadge, promptDialog, confirmDialog, roomText, inputField } from '../util.js';
 
 const STATUS_TONE = { pending: 'blue', processing: 'amber', answered: 'green', closed: 'gray' };
 
@@ -208,21 +208,17 @@ export async function renderFeedback(container, { navigate, params }) {
             h('option', { value: 'appeal', selected: form.type === 'appeal' }, '违约申诉'),
             ),
           ),
-          h('div', { class: 'field' },
-            h('label', {}, '相关场地'),
-            h('select', {
-              on: { change: (event) => { form.roomId = event.target.value; } },
-            }, rooms.map((room) => h('option', { value: room.id, selected: room.id === form.roomId }, roomText(room)))),
-          ),
+          inputField('相关场地', h('select', {
+            on: { change: (event) => { form.roomId = event.target.value; } },
+          }, rooms.map((room) => h('option', { value: room.id, selected: room.id === form.roomId }, roomText(room))))),
           appeal
             ? h('div', { class: 'field span-2' },
-              h('label', {}, '关联违规记录'),
-              h('select', {
+              inputField('关联违规记录', h('select', {
                 on: { change: (event) => onViolationChange(event.target.value) },
               },
               h('option', { value: '' }, '请选择需要申诉的违规记录'),
               violationOptions().map((v) => h('option', { value: v.id, selected: v.id === form.violationId }, `${v.occurredAtText} · ${v.typeLabel} · ${v.statusLabel}`)),
-              ),
+              )),
               h('p', { class: 'field-hint' }, '只可对本人记录申诉；已撤销的记录无需申诉。'),
             )
             : h('div', { class: 'field span-2' },
@@ -234,14 +230,11 @@ export async function renderFeedback(container, { navigate, params }) {
               reservationOptions().map((r) => h('option', { value: r.id, selected: r.id === form.reservationId }, `${r.roomName} ${r.seatCode} · ${r.startText}—${r.endText}`)),
               ),
             ),
-          h('div', { class: 'field span-2' },
-            h('label', {}, '问题说明'),
-            h('textarea', {
-              maxlength: 2000,
-              placeholder: '请说明发生时间、地点、现场情况以及需要解决的问题。',
-              on: { input: (event) => { form.description = event.target.value; } },
-            }, form.description),
-          ),
+          inputField('问题说明', h('textarea', {
+            maxlength: 2000,
+            placeholder: '请说明发生时间、地点、现场情况以及需要解决的问题。',
+            on: { input: (event) => { form.description = event.target.value; } },
+          }, form.description), { wide: true }),
         ),
         h('div', { class: 'row' },
           h('button', { class: 'btn primary', type: 'button', disabled: busy, on: { click: submitComplaint } }, busy ? '提交中…' : '提交投诉'),
