@@ -1,6 +1,6 @@
 import { setContent, roomText } from '../util.js';
 import { api, ApiError, newKey, qs } from '../api.js';
-import { beijingDate, beijingTime, dateLabel, now } from '../state.js';
+import { beijingDate, beijingTime, now } from '../state.js';
 import {
   h, icon, toast, emptyState, openModal, confirmDialog, promptDialog,
   plainBadge, statusBadge, section,
@@ -282,7 +282,7 @@ export async function renderAdminVenue(container, { navigate }) {
           ? h('div', { class: 'table-wrap' }, h('table', { class: 'data' },
             h('thead', {}, h('tr', {}, h('th', {}, '日期'), h('th', {}, '开放时段'), h('th', {}, '备注'))),
             h('tbody', {}, plans.map((plan) => h('tr', {},
-              h('td', {}, `${plan.date} ${dateLabel(plan.date)}`),
+              h('td', {}, plan.date),
               h('td', {}, `${plan.start}—${plan.end}`),
               h('td', {}, plan.note || '—'),
             ))),

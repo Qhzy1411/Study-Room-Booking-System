@@ -158,7 +158,7 @@ describe.skipIf(!executablePath)('场地管理员操作', () => {
     await field('开始日期', 'input').fill(future);
     await field('结束日期', 'input').fill(future);
     await page.getByRole('button', {name:'发布开放计划'}).click();
-    await page.locator('tbody tr').filter({hasText:future}).waitFor();
+    await page.getByRole('cell', {name: future, exact: true}).waitFor();
     expect(await month.inputValue()).toBe(future.slice(0, 7));
     await month.fill('2000-01');
     await page.getByText('所选月份暂无已发布计划。').waitFor();
