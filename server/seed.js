@@ -532,7 +532,16 @@ function seed({ reset = false, perf = false } = {}) {
       ts - 24 * 60 * MINUTE,
     );
 
-    // 近 7 天历史使用数据：R1 约 28%，R2 约 25%，用于统计趋势
+    // 从七天前到昨天，依次设置 R1 上午、R1 下午、R2 傍晚前、R2 晚间的预约座位数。
+    const dailySeatCounts = [
+      [7, 8, 2, 5],
+      [10, 9, 4, 6],
+      [11, 10, 3, 8],
+      [9, 9, 2, 7],
+      [7, 9, 3, 5],
+      [11, 11, 4, 8],
+      [10, 10, 3, 7],
+    ];
     const r1Codes = Array.from({ length: 11 }, (_, i) => `A${String(i + 1).padStart(2, '0')}`);
     const r2Codes = Array.from({ length: 8 }, (_, i) => `B${String(i + 1).padStart(2, '0')}`);
     const r1Users = Array.from({ length: 11 }, (_, i) => `U${String(i + 1).padStart(2, '0')}`);
@@ -542,27 +551,28 @@ function seed({ reset = false, perf = false } = {}) {
     const evening = { start: 18 * 60, end: 20 * 60 + 30 };
     for (let daysAgo = 7; daysAgo >= 1; daysAgo -= 1) {
       const date = addDaysLocal(today, -daysAgo);
-      // R1：上午、下午各 11 个座位
-      for (let i = 0; i < 11; i += 1) {
+      const [r1Morning, r1Afternoon, r2Afternoon, r2Evening] = dailySeatCounts[7 - daysAgo];
+      for (let i = 0; i < r1Morning; i += 1) {
         historyReservation({
           ts, roomId: 'R1', seatCode: r1Codes[i], userId: r1Users[i], date,
           startMin: morning.start, endMin: morning.end,
           evaluated: i < 3 && (daysAgo + i) % 2 === 0, rating: 3 + ((daysAgo + i) % 3),
         });
+      }
+      for (let i = 0; i < r1Afternoon; i += 1) {
         historyReservation({
           ts, roomId: 'R1', seatCode: r1Codes[i], userId: r1Users[i], date,
           startMin: afternoon.start, endMin: afternoon.end,
           evaluated: i < 3 && daysAgo % 3 === 0, rating: 3 + ((daysAgo + i) % 3),
         });
       }
-      // R2：傍晚前 4 个座位、晚间 8 个座位
-      for (let i = 0; i < 4; i += 1) {
+      for (let i = 0; i < r2Afternoon; i += 1) {
         historyReservation({
           ts, roomId: 'R2', seatCode: r2Codes[i], userId: r2Users[i], date,
           startMin: 16 * 60, endMin: 17 * 60 + 30,
         });
       }
-      for (let i = 0; i < 8; i += 1) {
+      for (let i = 0; i < r2Evening; i += 1) {
         historyReservation({
           ts, roomId: 'R2', seatCode: r2Codes[i], userId: r2Users[i], date,
           startMin: evening.start, endMin: evening.end,

@@ -62,3 +62,19 @@ it('增大可提前预约天数后，新窗口的最后一天也有演示排班'
   const available = await student.get(`/availability?roomId=R2&date=${lastDate}&start=11:00&end=12:00`);
   expect(available.json.recommendations.length).toBeGreaterThan(0);
 });
+
+it.each(['R1', 'R2'])('%s 的七天历史使用率均来自实际使用分段且逐日不同', async (roomId) => {
+  await setClock(sys, `${today} 08:00`);
+  const yesterday = addDaysLocal(today, -1);
+  const response = await sys.get(`/admin/stats?roomId=${roomId}&date=${yesterday}`);
+  expect(response.status).toBe(200);
+
+  const { trend } = response.json;
+  expect(trend).toHaveLength(7);
+  for (const day of trend) {
+    expect(day.availableSeatMinutes).toBeGreaterThan(0);
+    expect(day.usageMinutes).toBeGreaterThan(0);
+    expect(day.usageRate).toBeCloseTo(day.usageMinutes / day.availableSeatMinutes * 100, 1);
+  }
+  expect(new Set(trend.map(day => day.usageRate)).size).toBe(7);
+});
