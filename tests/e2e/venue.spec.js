@@ -118,4 +118,34 @@ describe.skipIf(!executablePath)('场地管理员操作', () => {
       }
     }
   });
+
+  it.each(['详情', '评价'])('%s旧请求较晚返回时，仍保留当前楼层', async (kind) => {
+    await loginBothRooms();
+    const oldRequest = kind === '详情' ? '**/api/admin/rooms/R1?*' : '**/api/admin/evaluations?roomId=R1';
+    let release, signalStart;
+    const hold = new Promise(resolve => { release = resolve; });
+    const started = new Promise(resolve => { signalStart = resolve; });
+    await page.route(oldRequest, async route => {
+      const response = await route.fetch();
+      signalStart();
+      await hold;
+      await route.fulfill({response});
+    }, {times: 1});
+    try {
+      if (kind === '详情') await page.locator('.head-actions').getByRole('button', {name:'刷新'}).click();
+      else await tab('评价管理');
+      await started;
+      await room().selectOption('R2');
+      const ready = kind === '详情' ? page.locator('table.data tbody tr').first() : page.locator('table.data tbody tr, .empty').first();
+      await ready.waitFor();
+      const read = () => page.locator('.page-head p, table.data tbody, .empty').allTextContents();
+      const correct = await read();
+      const done = page.waitForResponse(r => r.url().includes(kind === '详情' ? '/admin/rooms/R1?' : '/admin/evaluations?roomId=R1'));
+      release();
+      await (await done).finished();
+      await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+      expect(await read()).toEqual(correct);
+      expect(await room().inputValue()).toBe('R2');
+    } finally { release(); }
+  });
 });
