@@ -15,25 +15,24 @@ const TABS = [
   ['reviews', '评价管理'],
 ];
 
-const state = {
-  rooms: [],
-  roomId: null,
-  tab: 'seats',
-  detail: null,
-  loading: true,
-  planMonth: '',
-  liveDate: '',
-  liveRows: null,
-  qrSheet: null,
-  reviews: null,
-  preview: null,
-  includeExpired: false,
-  form: { seatId: '', immediate: true, startAt: '', endAt: '', reason: '' },
-};
-
 const timeInput = (ts) => `${beijingDate(ts)}T${beijingTime(ts)}`;
 
 export async function renderAdminVenue(container, { navigate }) {
+  const state = {
+    rooms: [],
+    roomId: null,
+    tab: 'seats',
+    detail: null,
+    loading: true,
+    planMonth: '',
+    liveDate: '',
+    liveRows: null,
+    qrSheet: null,
+    reviews: null,
+    preview: null,
+    includeExpired: false,
+    form: { seatId: '', immediate: true, startAt: '', endAt: '', reason: '' },
+  };
   let disposed = false;
   const root = h('div', { class: 'stack-20' });
   container.append(root);
