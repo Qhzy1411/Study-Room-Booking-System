@@ -462,7 +462,7 @@ router.get('/admin/rooms', requireAuth, roleAdmin, route((req, res) => {
 }));
 
 router.get('/admin/rooms/:roomId', requireAuth, roleAdmin, route((req, res) => {
-  res.json(adminRoomDetail(req.user, req.params.roomId));
+  res.json(adminRoomDetail(req.user, req.params.roomId, req.query.planMonth));
 }));
 
 router.post('/admin/rooms/:roomId/plans', requireAuth, roleAdmin, route((req, res) => {

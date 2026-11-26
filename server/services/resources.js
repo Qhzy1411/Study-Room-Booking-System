@@ -71,7 +71,7 @@ function roomDetailForStudent(roomId) {
   };
 }
 
-function adminRoomDetail(admin, roomId) {
+function adminRoomDetail(admin, roomId, planMonth = dateStr(now()).slice(0, 7)) {
   const room = requireRoom(roomId);
   if (!admin.grants.includes(roomId)) throw forbidden('无权查看该场地');
   const ts = now();
@@ -110,7 +110,14 @@ function adminRoomDetail(admin, roomId) {
       upcomingCount: upcoming,
     };
   });
-  const plans = all('SELECT * FROM open_plans WHERE room_id = ? ORDER BY date LIMIT 60', roomId).map(planDto);
+  if (typeof planMonth !== 'string' || !/^\d{4}-(0[1-9]|1[0-2])$/.test(planMonth)) {
+    throw badRequest('排班月份须为有效的 YYYY-MM');
+  }
+  // ISO 日期按字典序排列，每月最多读取 31 条；查询可利用场地、日期联合索引。
+  const plans = all(
+    'SELECT * FROM open_plans WHERE room_id = ? AND date BETWEEN ? AND ? ORDER BY date',
+    roomId, `${planMonth}-01`, `${planMonth}-31`,
+  ).map(planDto);
   const suspensions = all(
     `SELECT s.*, st.code AS seat_code FROM suspensions s JOIN seats st ON st.id = s.seat_id
       WHERE s.room_id = ? ORDER BY s.start_ts DESC LIMIT 60`,
