@@ -54,6 +54,7 @@ function overlappingSeatReservations(seatId, startTs, endTs, excludeId = null) {
        FROM reservation_segments s
        JOIN reservations r ON r.id = s.reservation_id
       WHERE s.seat_id = ?
+        AND s.closed_reason IS NULL
         AND r.status IN ${ACTIVE_SQL}
         AND s.start_ts < ? AND ? < s.end_ts
         AND (? IS NULL OR r.id <> ?)`,
@@ -72,6 +73,7 @@ function overlappingUserReservations(userId, startTs, endTs, excludeId = null) {
        FROM reservation_segments s
        JOIN reservations r ON r.id = s.reservation_id
       WHERE r.user_id = ?
+        AND s.closed_reason IS NULL
         AND r.status IN ${ACTIVE_SQL}
         AND s.start_ts < ? AND ? < s.end_ts
         AND (? IS NULL OR r.id <> ?)`,
@@ -214,7 +216,9 @@ function reservationDto(row, { includeUser = false, includeRoom = false } = {}) 
     startTime: timeStr(row.start_ts),
     endTime: timeStr(row.end_ts),
     checkinDeadline: row.checkin_deadline,
-    checkinDeadlineText: fmt(row.checkin_deadline),
+    needPower: !!row.need_power,
+    checkinDeadlineText: fmt(row.checkin_protected_until ?? row.checkin_deadline),
+    checkinProtectedUntil: row.checkin_protected_until,
     createdAt: row.created_at,
     createdAtText: fmt(row.created_at),
     releasedAt: row.released_at,

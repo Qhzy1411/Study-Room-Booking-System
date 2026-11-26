@@ -162,6 +162,9 @@ CREATE TABLE IF NOT EXISTS reservations (
   rule_version_id TEXT NOT NULL,
   created_at INTEGER NOT NULL,
   checkin_deadline INTEGER NOT NULL,
+  need_power INTEGER NOT NULL DEFAULT 0,
+  checkin_protection_id TEXT,
+  checkin_protected_until INTEGER,
   released_at INTEGER,
   ended_at INTEGER,
   end_reason TEXT,
@@ -296,6 +299,7 @@ CREATE TABLE IF NOT EXISTS complaints (
   reservation_id TEXT,
   violation_id TEXT,
   is_site INTEGER NOT NULL DEFAULT 0,
+  is_occupancy INTEGER NOT NULL DEFAULT 0,
   seat_id TEXT,
   status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','processing','answered','closed')),
   assignee_id TEXT,
@@ -408,6 +412,20 @@ CREATE TABLE IF NOT EXISTS sessions (
 );
 CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions (user_id);
 `);
+
+const reservationColumns = db.prepare('PRAGMA table_info(reservations)').all().map((column) => column.name);
+if (!reservationColumns.includes('need_power')) {
+  db.exec('ALTER TABLE reservations ADD COLUMN need_power INTEGER NOT NULL DEFAULT 0');
+}
+if (!reservationColumns.includes('checkin_protection_id')) {
+  db.exec('ALTER TABLE reservations ADD COLUMN checkin_protection_id TEXT');
+}
+if (!reservationColumns.includes('checkin_protected_until')) {
+  db.exec('ALTER TABLE reservations ADD COLUMN checkin_protected_until INTEGER');
+}
+if (!db.prepare('PRAGMA table_info(complaints)').all().some((column) => column.name === 'is_occupancy')) {
+  db.exec('ALTER TABLE complaints ADD COLUMN is_occupancy INTEGER NOT NULL DEFAULT 0');
+}
 
 let depth = 0;
 let savepointSeq = 0;

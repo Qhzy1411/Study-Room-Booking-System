@@ -79,7 +79,7 @@ function adminRoomDetail(admin, roomId) {
     const power = get('SELECT * FROM facilities WHERE seat_id = ? AND kind = ?', seat.id, 'power');
     const current = get(
       `SELECT r.* FROM reservation_segments s JOIN reservations r ON r.id = s.reservation_id
-        WHERE s.seat_id = ? AND r.status IN ('pending','using','away') AND s.start_ts <= ? AND s.end_ts > ?
+        WHERE s.seat_id = ? AND s.closed_reason IS NULL AND r.status IN ('pending','using','away') AND s.start_ts <= ? AND s.end_ts > ?
         ORDER BY s.start_ts LIMIT 1`,
       seat.id,
       ts,
@@ -87,7 +87,7 @@ function adminRoomDetail(admin, roomId) {
     );
     const upcoming = get(
       `SELECT COUNT(*) AS n FROM reservation_segments s JOIN reservations r ON r.id = s.reservation_id
-        WHERE s.seat_id = ? AND r.status IN ('pending','using','away') AND s.end_ts > ?`,
+        WHERE s.seat_id = ? AND s.closed_reason IS NULL AND r.status IN ('pending','using','away') AND s.end_ts > ?`,
       seat.id,
       ts,
     ).n;
@@ -309,7 +309,7 @@ function archiveSeat(admin, seatId, { reason, archived = true }) {
     if (seat.archived === (archived ? 1 : 0)) throw conflict('座位归档状态未变化');
     const active = get(
       `SELECT COUNT(*) AS n FROM reservation_segments s JOIN reservations r ON r.id = s.reservation_id
-        WHERE s.seat_id = ? AND r.status IN ('pending','using','away') AND s.end_ts > ?`,
+        WHERE s.seat_id = ? AND s.closed_reason IS NULL AND r.status IN ('pending','using','away') AND s.end_ts > ?`,
       seatId,
       now(),
     ).n;

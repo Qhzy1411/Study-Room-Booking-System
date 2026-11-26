@@ -41,6 +41,7 @@ function affectedReservations(seatId, startTs, endTs) {
        FROM reservation_segments s
        JOIN reservations r ON r.id = s.reservation_id
       WHERE s.seat_id = ?
+        AND s.closed_reason IS NULL
         AND r.status IN ('pending','using','away')
         AND s.start_ts < ? AND ? < s.end_ts
       ORDER BY r.start_ts`,

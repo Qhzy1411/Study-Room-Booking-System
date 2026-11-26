@@ -168,8 +168,9 @@ function reservationDetail(row, { includeUser = false } = {}) {
 
 function processReservationDue(row, ts = now()) {
   if (!row) return row;
-  if (row.status === 'pending' && ts >= row.checkin_deadline) {
-    markNoShow(row, ts);
+  if (row.status === 'pending' && ts >= (row.checkin_protected_until ?? row.checkin_deadline)) {
+    if (row.checkin_protected_until != null) expireOccupancyProtection(row);
+    else markNoShow(row, ts);
     return get('SELECT * FROM reservations WHERE id = ?', row.id);
   }
   if (row.status === 'away') {
@@ -201,12 +202,12 @@ function processReservationDue(row, ts = now()) {
   return row;
 }
 
-function markNoShow(row, ts) {
-  const releaseAt = row.checkin_deadline;
+function markNoShow(row, ts, releaseAt = row.checkin_deadline) {
   closeRetentionAt(row.id, releaseAt, 'no_show');
   run(
-    `UPDATE reservations SET status = 'no_show', released_at = ?, ended_at = ?, end_reason = 'no_show'
-      WHERE id = ? AND status = 'pending'`,
+    `UPDATE reservations SET status = 'no_show', released_at = ?, ended_at = ?, end_reason = 'no_show',
+       cancel_reason = NULL, waived = 0, checkin_protected_until = NULL
+      WHERE id = ?`,
     releaseAt,
     releaseAt,
     row.id,
@@ -231,7 +232,7 @@ function markNoShow(row, ts) {
     action: 'reservation.no_show',
     objectType: 'reservation',
     objectId: row.id,
-    before: { status: 'pending' },
+    before: { status: row.status },
     after: { status: 'no_show', violationId },
     reason: '系统判定签到截止',
   });
@@ -242,6 +243,39 @@ function markNoShow(row, ts) {
     '系统记录了未签到待复核事件',
     `你在 ${fmt(row.start_ts)} 开始的预约因未在 ${fmt(row.checkin_deadline)} 前签到被记为待复核事件。待复核记录不等同处罚，如有异议可在“投诉与申诉”中说明。`,
   );
+}
+
+function expireOccupancyProtection(row) {
+  const releaseAt = row.checkin_protected_until;
+  const reason = '占座保护期结束，未完成签到';
+  closeRetentionAt(row.id, releaseAt, 'occupancy_protection_expired');
+  run(
+    `UPDATE reservations SET status = 'cancelled', released_at = ?, ended_at = ?,
+       cancel_reason = ?, end_reason = 'occupancy_protection_expired', waived = 1, version = version + 1
+       WHERE id = ? AND status = 'pending'`,
+    releaseAt, releaseAt, reason, row.id,
+  );
+  audit({
+    actor: SYSTEM_ACTOR,
+    action: 'reservation.occupancy_protection_expired',
+    objectType: 'reservation',
+    objectId: row.id,
+    before: { status: 'pending' },
+    after: { status: 'cancelled', waived: true, complaintId: row.checkin_protection_id },
+    reason,
+  });
+  notify(row.user_id, `reservation.occupancy_expired:${row.id}`, 'reservation', reason, '座位已释放，本次预约免罚取消。');
+}
+
+function rejectOccupancyProtection(complaint, ts) {
+  const row = get('SELECT * FROM reservations WHERE checkin_protection_id = ?', complaint.id);
+  if (row?.checkin_protected_until == null
+    || (row.status !== 'pending' && row.end_reason !== 'occupancy_protection_expired')) return;
+  if (ts >= row.checkin_deadline) {
+    markNoShow(row, ts, Math.min(ts, row.checkin_protected_until));
+  } else {
+    run('UPDATE reservations SET checkin_protected_until = NULL WHERE id = ?', row.id);
+  }
 }
 
 function completeAtEnd(row, away) {
@@ -301,11 +335,12 @@ function processDue(ts = now()) {
   return tx(() => {
     let handled = 0;
     const pendingDue = all(
-      `SELECT * FROM reservations WHERE status = 'pending' AND checkin_deadline <= ? ORDER BY checkin_deadline LIMIT 200`,
+      `SELECT * FROM reservations WHERE status = 'pending' AND COALESCE(checkin_protected_until, checkin_deadline) <= ?
+        ORDER BY COALESCE(checkin_protected_until, checkin_deadline) LIMIT 200`,
       ts,
     );
     for (const row of pendingDue) {
-      markNoShow(row, ts);
+      processReservationDue(row, ts);
       handled += 1;
     }
     const activeDue = all(
@@ -427,8 +462,8 @@ function createReservation(user, payload) {
     const deadline = Math.min(startTs + rule.checkin_grace_min * MINUTE, endTs);
     run(
       `INSERT INTO reservations
-        (id, user_id, room_id, seat_id, start_ts, end_ts, status, rule_version_id, created_at, checkin_deadline)
-       VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?)`,
+        (id, user_id, room_id, seat_id, start_ts, end_ts, status, rule_version_id, created_at, checkin_deadline, need_power)
+       VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?)`,
       id,
       user.id,
       room.id,
@@ -438,6 +473,7 @@ function createReservation(user, payload) {
       rule.id,
       ts,
       deadline,
+      payload.needPower ? 1 : 0,
     );
     run(
       `INSERT INTO reservation_segments (reservation_id, seat_id, start_ts, end_ts, created_at)
@@ -640,8 +676,9 @@ function performCheckin(user, id, { code = null, method = 'self_qr', note = null
         startText: fmt(row.start_ts),
       });
     }
-    if (ts >= row.checkin_deadline) {
-      throw unprocessable(`已超过签到截止时间 ${fmt(row.checkin_deadline)}，预约已转为未签到处理`);
+    const deadline = row.checkin_protected_until ?? row.checkin_deadline;
+    if (ts >= deadline) {
+      throw unprocessable(`已超过签到截止时间 ${fmt(deadline)}，不能签到`);
     }
     const seat = requireSeat(row.seat_id);
     if (method === 'self_qr') {
@@ -896,6 +933,7 @@ function swapCandidates(user, id, { needPower = false } = {}) {
   const row = get('SELECT * FROM reservations WHERE id = ?', id);
   assertOwnReservation(user, row);
   const processed = processReservationDue(row);
+  const requiresPower = !!processed.need_power || needPower;
   if (processed.status === 'away') throw conflict('暂离中不能换座，请先返回座位');
   if (processed.status !== 'pending' && processed.status !== 'using') {
     throw conflict('只有待签到或使用中的有效预约可以申请换座');
@@ -917,7 +955,7 @@ function swapCandidates(user, id, { needPower = false } = {}) {
     if (suspensionsForSeat(seat.id, remaining.start, remaining.end).length) continue;
     if (overlappingSeatReservations(seat.id, remaining.start, remaining.end, row.id).length) continue;
     if (overlappingUserReservations(user.id, remaining.start, remaining.end, row.id).length) continue;
-    if (needPower && facilityOf(seat.id, 'power')?.status !== 'normal') continue;
+    if (requiresPower && facilityOf(seat.id, 'power')?.status !== 'normal') continue;
     if (plan) {
       const dayStart = parseDate(dateStr(remaining.start));
       if (remaining.end > dayStart + plan.end_min * MINUTE || remaining.start < dayStart + plan.start_min * MINUTE) continue;
@@ -981,7 +1019,8 @@ function swapSeat(user, id, { targetSeatId, needPower = false, preference = 'nea
     if (suspensionsForSeat(target.id, remaining.start, remaining.end).length) {
       throw conflict('目标座位在剩余时段处于停用状态');
     }
-    if (facilityOf(target.id, 'power')?.status !== 'normal' && needPower) {
+    const requiresPower = !!row.need_power || needPower;
+    if (facilityOf(target.id, 'power')?.status !== 'normal' && requiresPower) {
       throw unprocessable('目标座位插座故障，不满足必要条件');
     }
     if (overlappingSeatReservations(target.id, remaining.start, remaining.end, row.id).length) {
@@ -1022,7 +1061,7 @@ function swapSeat(user, id, { targetSeatId, needPower = false, preference = 'nea
       row.seat_id,
       target.id,
       switchAt,
-      needPower ? 1 : 0,
+      requiresPower ? 1 : 0,
       preference,
       user.id,
       ts,
@@ -1052,6 +1091,7 @@ function swapSeat(user, id, { targetSeatId, needPower = false, preference = 'nea
 
 export {
   processDue,
+  rejectOccupancyProtection,
   processReservationDue,
   createReservation,
   listMine,
