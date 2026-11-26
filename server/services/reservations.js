@@ -667,6 +667,9 @@ function performCheckin(user, id, { code = null, method = 'self_qr', note = null
         reservation: reservationDetail(row),
       };
     }
+    if (row.status === 'no_show') {
+      throw conflict(`预约已按爽约处理（签到截止 ${fmt(row.checkin_deadline)}），不能签到`);
+    }
     if (row.status !== 'pending') {
       throw conflict(`当前预约状态为 ${row.status}，不能签到`);
     }
