@@ -148,4 +148,21 @@ describe.skipIf(!executablePath)('场地管理员操作', () => {
       expect(await room().inputValue()).toBe('R2');
     } finally { release(); }
   });
+
+  it('发布未来排班后定位该月份，并可查回历史或空月份', async () => {
+    await login('m1');
+    await tab('开放计划');
+    const month = page.getByLabel('查询月份');
+    expect(await month.inputValue()).toBe(today.slice(0, 7));
+    const future = addDaysLocal(today, 100);
+    await field('开始日期', 'input').fill(future);
+    await field('结束日期', 'input').fill(future);
+    await page.getByRole('button', {name:'发布开放计划'}).click();
+    await page.locator('tbody tr').filter({hasText:future}).waitFor();
+    expect(await month.inputValue()).toBe(future.slice(0, 7));
+    await month.fill('2000-01');
+    await page.getByText('所选月份暂无已发布计划。').waitFor();
+    await month.fill(today.slice(0, 7));
+    await page.locator('tbody tr').filter({hasText:today}).waitFor();
+  });
 });
