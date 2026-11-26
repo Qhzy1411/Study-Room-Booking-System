@@ -30,6 +30,7 @@ export async function renderAdminVenue(container, { navigate }) {
     qrSheet: null,
     reviews: null,
     preview: null,
+    cleared: false,
     includeExpired: false,
     form: { seatId: '', immediate: true, startAt: '', endAt: '', reason: '' },
   };
@@ -290,10 +291,10 @@ export async function renderAdminVenue(container, { navigate }) {
       on: { input: (event) => { form.reason = event.target.value; } },
     });
     const error = h('p', { style: { color: 'var(--danger)', fontSize: '13px' } });
-    let cleared = false;
     const clearedCheck = h('input', {
       type: 'checkbox',
-      on: { change: (event) => { cleared = event.target.checked; renderAll(); } },
+      checked: state.cleared,
+      on: { change: (event) => { state.cleared = event.target.checked; renderAll(); } },
     });
 
     const previewBtn = h('button', { class: 'btn', type: 'button' }, '预览影响');
@@ -308,7 +309,7 @@ export async function renderAdminVenue(container, { navigate }) {
           reason: form.reason,
         });
         state.preview = preview;
-        cleared = false;
+        state.cleared = false;
         renderAll();
       } catch (err) {
         state.preview = null;
@@ -319,7 +320,7 @@ export async function renderAdminVenue(container, { navigate }) {
 
     async function commit() {
       if (!state.preview) return;
-      if (state.preview.needClearance && !cleared) {
+      if (state.preview.needClearance && !state.cleared) {
         toast('请先确认现场已清场', 'warn');
         return;
       }
@@ -330,7 +331,7 @@ export async function renderAdminVenue(container, { navigate }) {
           startAt: form.immediate ? null : form.startAt.replace('T', ' '),
           endAt: form.endAt.replace('T', ' '),
           reason: form.reason,
-          cleared,
+          cleared: state.cleared,
           impactHash: state.preview.impactHash,
         }, { idempotencyKey: newKey() });
         toast('停用已提交，受影响预约已按规则处置');
@@ -350,7 +351,7 @@ export async function renderAdminVenue(container, { navigate }) {
     const preview = state.preview;
     const submit = h('button', {
       class: 'btn primary', type: 'button',
-      disabled: !preview || (preview.needClearance && !cleared),
+      disabled: !preview || (preview.needClearance && !state.cleared),
       on: { click: commit },
     }, '确认停用');
     const suspensions = (state.detail.suspensions || []).filter((s) => state.includeExpired || s.status === 'active');
