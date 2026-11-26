@@ -75,4 +75,47 @@ describe.skipIf(!executablePath)('场地管理员操作', () => {
     const final = (await student.get(reservation)).json.reservation;
     expect(final).toMatchObject({status: 'aborted', waiver: true, endReason: 'venue_suspension'});
   });
+
+  async function loginBothRooms() {
+    const created = await sys.post('/admin/users', {
+      username: 'bothrooms', displayName: '两馆值班员', password: '123456',
+      role: 'venue_admin', grants: ['R1', 'R2'],
+    });
+    expect(created.status).toBe(201);
+    await login('bothrooms');
+    return client('bothrooms');
+  }
+
+  const room = () => page.locator('.head-actions select');
+  it('从二层切到三层时，二维码、现场预约及评价无需重开标签', async () => {
+    const both = await loginBothRooms();
+    const qr = (await both.get('/admin/rooms/R2/qr-sheet')).json.seats;
+    const live = (await both.get('/admin/reservations?roomId=R2&date=' + today)).json.reservations;
+    const reviews = (await both.get('/admin/evaluations?roomId=R2')).json.evaluations;
+
+    for (const [label, path] of [['桌面二维码','/admin/rooms/R2/qr-sheet'], ['现场预约','/admin/reservations'], ['评价管理','/admin/evaluations']]) {
+      await tab('座位与设施');
+      await room().selectOption('R1');
+      await page.locator('table.data').waitFor();
+      await tab(label);
+      await page.locator(label === '桌面二维码' ? '.qr-item' : 'table.data, .empty').first().waitFor();
+      const loaded = page.waitForResponse(r => {
+        const url = new URL(r.url());
+        return url.pathname === '/api' + path && (label === '桌面二维码' || url.searchParams.get('roomId') === 'R2');
+      });
+      await room().selectOption('R2');
+      expect((await loaded).status()).toBe(200);
+      if (label === '桌面二维码') {
+        await page.locator('.qr-item').first().waitFor();
+        expect(await page.locator('.qr-item strong').allTextContents()).toEqual(qr.map(s => s.code));
+      } else {
+        const data = label === '现场预约' ? live : reviews;
+        await page.locator(data.length ? 'table.data tbody tr' : '.empty').first().waitFor();
+        expect(await page.locator('table.data tbody tr').count()).toBe(data.length);
+        if (data.length) expect(await page.locator('tbody tr').first().innerText()).toContain(
+          label === '现场预约' ? data[0].seatCode : data[0].content || '—',
+        );
+      }
+    }
+  });
 });
