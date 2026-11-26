@@ -93,6 +93,65 @@ function suspensionIntervals(seatIds, lo, hi) {
   return bySeat;
 }
 
+/**
+ * 事件类指标按“所选统计时段”本身统计，不受开放计划裁剪。
+ * 例如 07:30 创建次日预约，查询 07:00—08:00 的创建量时仍应计入。
+ */
+function eventCounts(roomId, from, to) {
+  if (!(to > from)) {
+    return {
+      createdCount: 0,
+      checkinCount: 0,
+      noShowCount: 0,
+      effectiveViolationCount: 0,
+      cancelledBySelf: 0,
+      cancelledByVenue: 0,
+    };
+  }
+  const createdCount = get(
+    'SELECT COUNT(*) AS n FROM reservations WHERE room_id = ? AND created_at >= ? AND created_at < ?',
+    roomId,
+    from,
+    to,
+  ).n;
+  const checkinCount = get(
+    `SELECT COUNT(*) AS n FROM checkins c JOIN reservations r ON r.id = c.reservation_id
+      WHERE r.room_id = ? AND c.at_ts >= ? AND c.at_ts < ?`,
+    roomId,
+    from,
+    to,
+  ).n;
+  const noShowCount = get(
+    `SELECT COUNT(*) AS n FROM violations
+      WHERE room_id = ? AND type = 'no_show' AND occurred_at >= ? AND occurred_at < ?`,
+    roomId,
+    from,
+    to,
+  ).n;
+  const effectiveViolationCount = get(
+    `SELECT COUNT(*) AS n FROM violations
+      WHERE room_id = ? AND status = 'effective' AND occurred_at >= ? AND occurred_at < ?`,
+    roomId,
+    from,
+    to,
+  ).n;
+  const cancelledBySelf = get(
+    `SELECT COUNT(*) AS n FROM reservations
+      WHERE room_id = ? AND status = 'cancelled' AND waived = 0 AND released_at >= ? AND released_at < ?`,
+    roomId,
+    from,
+    to,
+  ).n;
+  const cancelledByVenue = get(
+    `SELECT COUNT(*) AS n FROM reservations
+      WHERE room_id = ? AND waived = 1 AND released_at >= ? AND released_at < ?`,
+    roomId,
+    from,
+    to,
+  ).n;
+  return { createdCount, checkinCount, noShowCount, effectiveViolationCount, cancelledBySelf, cancelledByVenue };
+}
+
 function dayMetrics(roomId, date, { windowStart = null, windowEnd = null, snapshot = now() } = {}) {
   const plan = get('SELECT * FROM open_plans WHERE room_id = ? AND date = ?', roomId, date);
   const base = {
@@ -122,13 +181,21 @@ function dayMetrics(roomId, date, { windowStart = null, windowEnd = null, snapsh
   const dayStart = parseDate(date);
   const planStart = dayStart + plan.start_min * MINUTE;
   const planEnd = dayStart + plan.end_min * MINUTE;
-  const winStart = Math.max(planStart, windowStart ?? planStart);
-  const winEnd = Math.min(planEnd, windowEnd ?? planEnd);
+  const requestedStart = windowStart ?? planStart;
+  const requestedEnd = windowEnd ?? planEnd;
+  const counts = eventCounts(roomId, requestedStart, Math.min(requestedEnd, snapshot));
+  base.window = {
+    start: requestedStart,
+    end: requestedEnd,
+    startText: fmt(requestedStart),
+    endText: fmt(requestedEnd),
+  };
+  Object.assign(base, counts);
+
+  const winStart = Math.max(planStart, requestedStart);
+  const winEnd = Math.min(planEnd, requestedEnd);
   const effEnd = Math.min(winEnd, snapshot);
-  if (effEnd <= winStart) {
-    base.window = { start: winStart, end: winEnd, startText: fmt(winStart), endText: fmt(winEnd) };
-    return base;
-  }
+  if (effEnd <= winStart) return base;
 
   // 历史分母必须使用“统计时段内实际生效”的座位，而不是查询时的在册座位：
   // 事后归档会缩小分母、恢复或新增会放大分母，都会让无变化的历史使用分钟算出不同比率。
@@ -189,45 +256,6 @@ function dayMetrics(roomId, date, { windowStart = null, windowEnd = null, snapsh
     if (end > start) usage += end - start;
   }
 
-  const created = get(
-    'SELECT COUNT(*) AS n FROM reservations WHERE room_id = ? AND created_at >= ? AND created_at < ?',
-    roomId,
-    winStart,
-    effEnd,
-  ).n;
-  const checkins = get(
-    `SELECT COUNT(*) AS n FROM checkins c JOIN reservations r ON r.id = c.reservation_id
-      WHERE r.room_id = ? AND c.at_ts >= ? AND c.at_ts < ?`,
-    roomId,
-    winStart,
-    effEnd,
-  ).n;
-  const noShows = get(
-    `SELECT COUNT(*) AS n FROM violations WHERE room_id = ? AND type = 'no_show' AND occurred_at >= ? AND occurred_at < ?`,
-    roomId,
-    winStart,
-    effEnd,
-  ).n;
-  const effectiveViolations = get(
-    `SELECT COUNT(*) AS n FROM violations WHERE room_id = ? AND status = 'effective' AND occurred_at >= ? AND occurred_at < ?`,
-    roomId,
-    winStart,
-    effEnd,
-  ).n;
-  const cancelledSelf = get(
-    `SELECT COUNT(*) AS n FROM reservations
-      WHERE room_id = ? AND status = 'cancelled' AND waived = 0 AND released_at >= ? AND released_at < ?`,
-    roomId,
-    winStart,
-    effEnd,
-  ).n;
-  const cancelledVenue = get(
-    `SELECT COUNT(*) AS n FROM reservations
-      WHERE room_id = ? AND waived = 1 AND released_at >= ? AND released_at < ?`,
-    roomId,
-    winStart,
-    effEnd,
-  ).n;
   const rating = get(
     'SELECT COUNT(*) AS count, AVG(rating) AS average FROM evaluations WHERE room_id = ?',
     roomId,
@@ -238,16 +266,9 @@ function dayMetrics(roomId, date, { windowStart = null, windowEnd = null, snapsh
   return {
     ...base,
     seatsCount,
-    window: { start: winStart, end: winEnd, startText: fmt(winStart), endText: fmt(winEnd) },
     availableSeatMinutes: availableMinutes,
     usageMinutes,
     usageRate: availableMinutes > 0 ? Math.round((usageMinutes / availableMinutes) * 1000) / 10 : null,
-    createdCount: created,
-    checkinCount: checkins,
-    noShowCount: noShows,
-    effectiveViolationCount: effectiveViolations,
-    cancelledBySelf: cancelledSelf,
-    cancelledByVenue: cancelledVenue,
     rating: {
       count: rating?.count || 0,
       average: rating?.average != null ? Math.round(rating.average * 10) / 10 : null,
@@ -327,7 +348,7 @@ function statsForRoom(admin, { roomId, date, start = null, end = null }) {
       available: '逐座位按创建至归档（含恢复）的生效区间，计算统计时段内、快照时刻之前的开放分钟，扣除停用分钟后求和；重叠停用只扣一次。',
       usage: '逐预约按使用分段计算签到至签退、到期或异常关闭的时长；换座分段不重复计入；扣除暂离时长。',
       rate: '登记使用分钟 ÷ 可用座位分钟 × 100%，保留一位小数；分母为 0 时显示“—”。',
-      counts: '预约创建量按创建时刻统计；首次签到量按签到时刻统计；未签到事件按签到截止时刻统计；净生效违规按事件发生日及快照时有效结论统计。',
+      counts: '预约创建量、首次签到量、未签到事件、取消量均按所选统计时段内的事件发生时刻统计，不受开放时段裁剪；净生效违规按事件发生日及快照时有效结论统计。',
     },
   };
 }

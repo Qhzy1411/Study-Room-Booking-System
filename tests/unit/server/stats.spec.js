@@ -181,4 +181,31 @@ describe('统计口径（AC-16、BR-16、4.3）', () => {
     expect(afterAdd.metrics.usageRate).toBe(before.metrics.usageRate);
     expect(afterAdd.metrics.seatsCount).toBe(before.metrics.seatsCount);
   });
+
+  it('开馆前创建的次日预约计入创建当天的预约创建量', async () => {
+    const m1 = createApiClient(server.base);
+    await m1.login('m1');
+    const u01 = createApiClient(server.base);
+    await u01.login('u01');
+    const tomorrow = addDaysLocal(today, 1);
+
+    await setClock(s1, `${today} 07:30`);
+    const booked = await u01.post(
+      '/reservations',
+      { roomId: 'R1', seatId: 'R1-A14', date: tomorrow, start: '09:00', end: '10:00' },
+      { key: key() },
+    );
+    expect(booked.status).toBe(201);
+    await setClock(s1, `${today} 15:00`);
+
+    const response = await m1.get(`/admin/stats?roomId=R1&date=${today}&start=07:00&end=08:00`);
+    expect(response.status).toBe(200);
+    const data = response.json;
+    expect(data.metrics.createdCount).toBe(1);
+    expect(data.metrics.availableSeatMinutes).toBe(0);
+    expect(data.metrics.usageMinutes).toBe(0);
+    expect(data.metrics.usageRate).toBeNull();
+    expect(data.metrics.window.startText).toBe(`${today} 07:00`);
+    expect(data.metrics.window.endText).toBe(`${today} 08:00`);
+  });
 });
