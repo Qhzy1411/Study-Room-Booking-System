@@ -53,3 +53,22 @@ it('换座后释放旧座；停用旧座只取消旧座上的新预约', async (
   const current = await student.get(`/reservations/${original.id}`);
   expect(current.json.reservation).toMatchObject({ id: original.id, seatCode: 'A04', status: 'pending' });
 });
+
+it('换座继承预约的插座要求，直接提交也不能选故障座位', async () => {
+  const original = await book(student, 'A05', '11:00', '12:00', true);
+  expect(original.needPower).toBe(true);
+  const report = await student.post(`/reservations/${original.id}/site-issues`, {
+    type: 'facility', description: '座椅损坏',
+  }, { key: key() });
+  expect(report.status).toBe(201);
+  const result = await student.get(`/reservations/${original.id}/swap-candidates?needPower=false`);
+  expect(result.status).toBe(200);
+  expect(result.json.candidates.map((seat) => seat.seatCode)).toContain('A07');
+  expect(result.json.candidates.every((seat) => seat.power === 'normal')).toBe(true);
+  const rejected = await student.post(`/reservations/${original.id}/swap`, {
+    targetSeatId: 'R1-A06', needPower: false, expectedVersion: original.version,
+  }, { key: key() });
+  expect(rejected.status).toBe(422);
+  const current = await student.get(`/reservations/${original.id}`);
+  expect(current.json.reservation).toMatchObject({ seatCode: 'A05', needPower: true });
+});

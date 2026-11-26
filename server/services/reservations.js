@@ -427,8 +427,8 @@ function createReservation(user, payload) {
     const deadline = Math.min(startTs + rule.checkin_grace_min * MINUTE, endTs);
     run(
       `INSERT INTO reservations
-        (id, user_id, room_id, seat_id, start_ts, end_ts, status, rule_version_id, created_at, checkin_deadline)
-       VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?)`,
+        (id, user_id, room_id, seat_id, start_ts, end_ts, status, rule_version_id, created_at, checkin_deadline, need_power)
+       VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?)`,
       id,
       user.id,
       room.id,
@@ -438,6 +438,7 @@ function createReservation(user, payload) {
       rule.id,
       ts,
       deadline,
+      payload.needPower ? 1 : 0,
     );
     run(
       `INSERT INTO reservation_segments (reservation_id, seat_id, start_ts, end_ts, created_at)
@@ -896,6 +897,7 @@ function swapCandidates(user, id, { needPower = false } = {}) {
   const row = get('SELECT * FROM reservations WHERE id = ?', id);
   assertOwnReservation(user, row);
   const processed = processReservationDue(row);
+  const requiresPower = !!processed.need_power || needPower;
   if (processed.status === 'away') throw conflict('暂离中不能换座，请先返回座位');
   if (processed.status !== 'pending' && processed.status !== 'using') {
     throw conflict('只有待签到或使用中的有效预约可以申请换座');
@@ -917,7 +919,7 @@ function swapCandidates(user, id, { needPower = false } = {}) {
     if (suspensionsForSeat(seat.id, remaining.start, remaining.end).length) continue;
     if (overlappingSeatReservations(seat.id, remaining.start, remaining.end, row.id).length) continue;
     if (overlappingUserReservations(user.id, remaining.start, remaining.end, row.id).length) continue;
-    if (needPower && facilityOf(seat.id, 'power')?.status !== 'normal') continue;
+    if (requiresPower && facilityOf(seat.id, 'power')?.status !== 'normal') continue;
     if (plan) {
       const dayStart = parseDate(dateStr(remaining.start));
       if (remaining.end > dayStart + plan.end_min * MINUTE || remaining.start < dayStart + plan.start_min * MINUTE) continue;
@@ -981,7 +983,8 @@ function swapSeat(user, id, { targetSeatId, needPower = false, preference = 'nea
     if (suspensionsForSeat(target.id, remaining.start, remaining.end).length) {
       throw conflict('目标座位在剩余时段处于停用状态');
     }
-    if (facilityOf(target.id, 'power')?.status !== 'normal' && needPower) {
+    const requiresPower = !!row.need_power || needPower;
+    if (facilityOf(target.id, 'power')?.status !== 'normal' && requiresPower) {
       throw unprocessable('目标座位插座故障，不满足必要条件');
     }
     if (overlappingSeatReservations(target.id, remaining.start, remaining.end, row.id).length) {
@@ -1022,7 +1025,7 @@ function swapSeat(user, id, { targetSeatId, needPower = false, preference = 'nea
       row.seat_id,
       target.id,
       switchAt,
-      needPower ? 1 : 0,
+      requiresPower ? 1 : 0,
       preference,
       user.id,
       ts,

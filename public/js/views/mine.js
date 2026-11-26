@@ -309,7 +309,7 @@ export async function renderMine(container, { navigate }) {
   }
 
   async function openProblemDialog(reservation) {
-    let needPower = false;
+    let needPower = reservation.needPower;
     let siteIssueKey = null;
     const swapKeys = new Map();
     const type = h('select', {},
@@ -321,7 +321,7 @@ export async function renderMine(container, { navigate }) {
     const submitBtn = h('button', { class: 'btn primary', type: 'button' }, '提交现场问题');
     const progress = h('div', { class: 'stack' });
     const candidateBox = h('div', { class: 'stack' });
-    const powerCheck = h('input', { type: 'checkbox' });
+    const powerCheck = h('input', { type: 'checkbox', checked: needPower, disabled: needPower });
     const error = h('p', { style: { color: 'var(--danger)', fontSize: '13px' } });
 
     async function refreshProgress() {
@@ -378,18 +378,19 @@ export async function renderMine(container, { navigate }) {
       candidateBox.replaceChildren(h('p', { class: 'muted small' }, '正在查询同房间替代座位…'));
       try {
         const data = await api.get(`/reservations/${reservation.id}/swap-candidates?needPower=${needPower ? 'true' : 'false'}`);
+        const heading = h('div', { class: 'row between' },
+          h('h3', {}, '替代座位'),
+          h('label', { class: 'check' }, powerCheck, h('span', { class: 'text' }, '必须插座正常')),
+        );
         if (!data.candidates.length) {
           candidateBox.replaceChildren(
-            h('h3', {}, '替代座位'),
+            heading,
             h('p', { class: 'small muted' }, data.emptyReason || '暂无可换座位。'),
           );
           return;
         }
         candidateBox.replaceChildren(
-          h('div', { class: 'row between' },
-            h('h3', {}, '替代座位'),
-            h('label', { class: 'check' }, powerCheck, h('span', { class: 'text' }, '必须插座正常')),
-          ),
+          heading,
           h('p', { class: 'small muted' }, `剩余时段 ${data.remaining.startText} — ${data.remaining.endText}；换座保留结束时间与签到截止，不新增额度。`),
           h('div', { class: 'recommend-list' },
             data.candidates.map((candidate) => h('div', { class: 'recommend' },

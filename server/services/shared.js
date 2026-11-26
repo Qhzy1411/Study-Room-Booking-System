@@ -216,6 +216,7 @@ function reservationDto(row, { includeUser = false, includeRoom = false } = {}) 
     startTime: timeStr(row.start_ts),
     endTime: timeStr(row.end_ts),
     checkinDeadline: row.checkin_deadline,
+    needPower: !!row.need_power,
     checkinDeadlineText: fmt(row.checkin_deadline),
     createdAt: row.created_at,
     createdAtText: fmt(row.created_at),

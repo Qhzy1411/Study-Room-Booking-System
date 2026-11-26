@@ -162,6 +162,7 @@ CREATE TABLE IF NOT EXISTS reservations (
   rule_version_id TEXT NOT NULL,
   created_at INTEGER NOT NULL,
   checkin_deadline INTEGER NOT NULL,
+  need_power INTEGER NOT NULL DEFAULT 0,
   released_at INTEGER,
   ended_at INTEGER,
   end_reason TEXT,
@@ -408,6 +409,10 @@ CREATE TABLE IF NOT EXISTS sessions (
 );
 CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions (user_id);
 `);
+
+if (!db.prepare('PRAGMA table_info(reservations)').all().some((column) => column.name === 'need_power')) {
+  db.exec('ALTER TABLE reservations ADD COLUMN need_power INTEGER NOT NULL DEFAULT 0');
+}
 
 let depth = 0;
 let savepointSeq = 0;
