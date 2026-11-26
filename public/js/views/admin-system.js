@@ -2,7 +2,7 @@ import { setContent, roomText } from '../util.js';
 import { api, ApiError } from '../api.js';
 import { applyClock, beijingDate, beijingTime } from '../state.js';
 import {
-  h, icon, toast, plainBadge, openModal,
+  h, icon, toast, plainBadge, openModal, inputField,
 } from '../util.js';
 
 const TABS = [
@@ -184,7 +184,7 @@ export async function renderAdminSystem(container) {
       wide: true,
       body: h('div', { class: 'stack' },
         h('div', { class: 'form-grid' },
-          h('div', { class: 'field' }, h('label', {}, '显示名'), displayName),
+          inputField('显示名', displayName),
           h('div', { class: 'field' }, h('label', {}, '角色'), roleSelect),
           h('div', { class: 'field' }, h('label', {}, '重置密码（可选）'), password),
           h('div', { class: 'field' }, h('label', {}, '账号启用'), h('label', { class: 'check' }, enabledCheck, h('span', { class: 'text' }, '启用（禁用后下一次请求即拒绝）'))),
@@ -222,15 +222,15 @@ export async function renderAdminSystem(container) {
         h('div', { class: 'card-head' }, h('h2', {}, '创建账号')),
         h('div', { class: 'card-body stack' },
           h('div', { class: 'form-grid' },
-            h('div', { class: 'field' }, h('label', {}, '登录账号'), h('input', {
+            inputField('登录账号', h('input', {
               type: 'text', value: state.create.username, placeholder: '例如 u04',
               on: { input: (event) => { state.create.username = event.target.value; } },
             })),
-            h('div', { class: 'field' }, h('label', {}, '显示名'), h('input', {
+            inputField('显示名', h('input', {
               type: 'text', value: state.create.displayName,
               on: { input: (event) => { state.create.displayName = event.target.value; } },
             })),
-            h('div', { class: 'field' }, h('label', {}, '初始密码'), h('input', {
+            inputField('初始密码', h('input', {
               type: 'password', value: state.create.password, autocomplete: 'new-password',
               on: { input: (event) => { state.create.password = event.target.value; } },
             })),
@@ -290,13 +290,10 @@ export async function renderAdminSystem(container) {
         h('div', { class: 'card-head' }, h('h2', {}, '发布新规则版本')),
         h('div', { class: 'card-body stack' },
           h('div', { class: 'form-grid three' },
-            fields.map(([key, label, min, max]) => h('div', { class: 'field' },
-              h('label', {}, label),
-              h('input', {
-                type: 'number', min, max, value: state.rule[key],
-                on: { input: (event) => { state.rule[key] = Number(event.target.value); } },
-              }),
-            )),
+            fields.map(([key, label, min, max]) => inputField(label, h('input', {
+              type: 'number', min, max, value: state.rule[key],
+              on: { input: (event) => { state.rule[key] = Number(event.target.value); } },
+            }))),
             h('div', { class: 'field span-2' }, h('label', {}, '备注'), h('input', {
               type: 'text', value: state.rule.note, placeholder: '例如：考试周调整签到宽限',
               on: { input: (event) => { state.rule.note = event.target.value; } },
@@ -411,7 +408,7 @@ export async function renderAdminSystem(container) {
             h('dt', {}, '时间偏移'), h('dd', {}, clock?.usingRealTime ? '与系统时间一致' : `${Math.round((clock?.offsetMs || 0) / 60000)} 分钟`),
           ),
           h('div', { class: 'form-grid' },
-            h('div', { class: 'field' }, h('label', {}, '设置为（北京时间）'), h('input', {
+            inputField('设置为（北京时间）', h('input', {
               type: 'datetime-local', value: state.clockAt,
               on: { change: (event) => { state.clockAt = event.target.value; } },
             })),

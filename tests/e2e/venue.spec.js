@@ -24,7 +24,6 @@ describe.skipIf(!executablePath)('场地管理员操作', () => {
   }
 
   const tab = name => page.getByRole('tab', {name, exact: true}).click();
-  const field = (label, control) => page.locator('.field').filter({has: page.getByText(label, {exact: true})}).locator(control);
 
   beforeAll(async () => { browser = await chromium.launch({executablePath, headless: true}); });
   afterAll(async () => { await browser?.close(); });
@@ -173,8 +172,8 @@ describe.skipIf(!executablePath)('场地管理员操作', () => {
     const month = page.getByLabel('查询月份');
     expect(await month.inputValue()).toBe(today.slice(0, 7));
     const future = addDaysLocal(today, 100);
-    await field('开始日期', 'input').fill(future);
-    await field('结束日期', 'input').fill(future);
+    await page.getByLabel('开始日期').fill(future);
+    await page.getByLabel('结束日期').fill(future);
     await page.getByRole('button', {name:'发布开放计划'}).click();
     await page.getByRole('cell', {name: future, exact: true}).waitFor();
     expect(await month.inputValue()).toBe(future.slice(0, 7));

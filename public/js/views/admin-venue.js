@@ -150,6 +150,7 @@ export async function renderAdminVenue(container, { navigate }) {
     save.addEventListener('click', async () => {
       if (!note.value.trim()) {
         error.textContent = '须填写现场核实或维修说明';
+        note.focus();
         return;
       }
       save.disabled = true;
@@ -168,7 +169,7 @@ export async function renderAdminVenue(container, { navigate }) {
       body: h('div', { class: 'stack' },
         h('div', { class: 'notice' }, '设施修复只更新设施状态，不自动撤销另行设置的停用安排。'),
         h('div', { class: 'field' }, h('label', {}, '插座状态'), select),
-        h('div', { class: 'field' }, h('label', {}, '核实说明'), note),
+        inputField('核实说明', note),
         error,
       ),
       footer: [h('button', { class: 'btn ghost', type: 'button', on: { click: () => dialog.close() } }, '取消'), save],
@@ -258,10 +259,10 @@ export async function renderAdminVenue(container, { navigate }) {
       h('div', { class: 'card' },
         h('div', { class: 'card-body stack' },
           h('div', { class: 'form-grid' },
-            h('div', { class: 'field' }, h('label', {}, '开始日期'), from),
-            h('div', { class: 'field' }, h('label', {}, '结束日期'), to),
-            h('div', { class: 'field' }, h('label', {}, '开放开始'), start),
-            h('div', { class: 'field' }, h('label', {}, '开放结束'), end),
+            inputField('开始日期', from),
+            inputField('结束日期', to, { required: false }),
+            inputField('开放开始', start),
+            inputField('开放结束', end),
             h('div', { class: 'field span-2' }, h('label', {}, '备注'), note),
           ),
           h('div', { class: 'row' }, submit, error),

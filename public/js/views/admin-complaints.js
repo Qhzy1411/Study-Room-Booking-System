@@ -1,6 +1,6 @@
 import { setContent, roomText } from '../util.js';
 import { api, ApiError } from '../api.js';
-import { h, icon, toast, emptyState, plainBadge } from '../util.js';
+import { h, icon, toast, emptyState, plainBadge, inputField } from '../util.js';
 
 const STATUS_TONE = { pending: 'blue', processing: 'amber', answered: 'green', closed: 'gray' };
 const TABS = [
@@ -187,14 +187,11 @@ export async function renderAdminComplaints(container, { navigate }) {
           : null,
         c.status === 'processing'
           ? h('div', { class: 'stack' },
-            h('div', { class: 'field' },
-              h('label', {}, '答复及依据'),
-              h('textarea', {
-                rows: 4, maxlength: 2000, value: state.reply,
-                placeholder: '填写核实结果、处理依据和必要的纠正措施。',
-                on: { input: (event) => { state.reply = event.target.value; } },
-              }),
-            ),
+            inputField('答复及依据', h('textarea', {
+              rows: 4, maxlength: 2000, value: state.reply,
+              placeholder: '填写核实结果、处理依据和必要的纠正措施。',
+              on: { input: (event) => { state.reply = event.target.value; } },
+            })),
             c.isOccupancy ? h('label', { class: 'check' },
               h('input', {
                 type: 'checkbox', checked: state.occupancyUnfounded, disabled: state.busy,

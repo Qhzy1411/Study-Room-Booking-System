@@ -205,7 +205,7 @@ export function promptDialog({ title, label, message = null, placeholder = '', v
     const submit = () => {
       const text = input.value.trim();
       if (required && !text) {
-        error.textContent = '请填写必要内容';
+        error.textContent = `请填写${label}`;
         input.focus();
         return;
       }
@@ -215,7 +215,7 @@ export function promptDialog({ title, label, message = null, placeholder = '', v
       title,
       body: h('div', { class: 'stack' },
         message ? h('p', { class: 'muted small' }, message) : null,
-        h('div', { class: 'field' }, h('label', {}, label), input),
+        inputField(label, input, { required }),
         error,
       ),
       footer: [
