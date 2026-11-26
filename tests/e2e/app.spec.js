@@ -31,7 +31,8 @@ async function newPage(viewport = { width: 1280, height: 900 }) {
 
 async function loginAs(page, base, index) {
   await page.goto(base);
-  await page.locator('.auth-showcase').waitFor({ state: 'visible' });
+  await page.locator('.auth-form').waitFor({ state: 'visible' });
+  expect(await page.locator('.auth-showcase').count()).toBe(0);
   await page.locator('.demo-btns button').nth(index).click();
   await page.locator('.nav a').first().waitFor({ state: 'visible', timeout: 15000 });
 }
