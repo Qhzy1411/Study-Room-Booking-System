@@ -316,7 +316,8 @@ function statsForRoom(admin, { roomId, date, start = null, end = null }) {
     throw badRequest('统计结束时间必须晚于开始时间');
   }
   const metrics = dayMetrics(roomId, date, { windowStart, windowEnd, snapshot: ts });
-  const rooms = adminRooms(admin).map((r) => roomSummary(r.id, date, {}, ts));
+  // 卡片与柱状图必须使用同一日期和所选时段，否则“同日同时段”的柱形会按全天开放时间计算。
+  const rooms = adminRooms(admin).map((r) => roomSummary(r.id, date, { windowStart, windowEnd }, ts));
   const trend = [];
   for (let i = 6; i >= 0; i -= 1) {
     const d = addDaysLocal(date, -i);

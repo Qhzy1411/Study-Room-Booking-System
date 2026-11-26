@@ -117,6 +117,21 @@ describe('统计口径（AC-16、BR-16、4.3）', () => {
     expect(data.trend).toHaveLength(7);
   });
 
+  it('柱状图与统计卡片使用同一所选时段', async () => {
+    const response = await m9.get(`/admin/stats?roomId=R9&date=${today}&start=14:00&end=14:30`);
+    expect(response.status).toBe(200);
+    const data = response.json;
+    expect(data.metrics.availableSeatMinutes).toBe(120);
+    expect(data.metrics.usageMinutes).toBe(60);
+    expect(data.metrics.usageRate).toBe(50);
+
+    const row = data.rooms.find((r) => r.roomId === 'R9');
+    expect(row.availableSeatMinutes).toBe(data.metrics.availableSeatMinutes);
+    expect(row.usageMinutes).toBe(data.metrics.usageMinutes);
+    expect(row.usageRate).toBe(data.metrics.usageRate);
+    expect(row.displayRate).toBe('50.0%');
+  });
+
   it('无开放计划时分母为 0，使用率显示“—”', async () => {
     const response = await m9.get(`/admin/stats?roomId=R10&date=${today}`);
     expect(response.status).toBe(200);
