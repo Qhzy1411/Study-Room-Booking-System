@@ -41,7 +41,7 @@ afterAll(async () => {
   await server?.close();
 });
 
-describe('每日累计时长额度按实际占用计算（缺陷 10）', () => {
+describe('每日累计时长额度按实际占用计算', () => {
   it('提前取消四小时预约后返还时长，可再预约一小时', async () => {
     const first = await book(u01, { seatId: 'R1-A01', start: '10:00', end: '14:00' });
     expect(first.status).toBe(201);
