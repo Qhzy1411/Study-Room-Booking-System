@@ -19,6 +19,23 @@ beforeAll(async () => {
 
 afterAll(async () => { await server?.close(); });
 
+it.each([['R1', 'm1'], ['R2', 'm2']])('%s 初始化当天包含其他学生的预约', async (roomId, username) => {
+  const manager = createApiClient(server.base);
+  await manager.login(username);
+  const response = await manager.get(`/admin/reservations?roomId=${roomId}&date=${today}`);
+  expect(response.status).toBe(200);
+  const { reservations } = response.json;
+  expect(reservations).toHaveLength(3);
+  expect(new Set(reservations.map(booking => booking.userId)).size).toBe(3);
+
+  for (const booking of reservations) {
+    expect(booking.userId).toMatch(/^U0[4-9]$/);
+    const available = await student.get(`/availability?roomId=${roomId}&date=${today}&start=${booking.startTime}&end=${booking.endTime}`);
+    const seat = available.json.seats.find(seat => seat.id === booking.seatId);
+    expect(seat.state).toBe(booking.status === 'completed' ? 'available' : 'occupied');
+  }
+});
+
 it('时钟跳到远处日期后可查询并预约，已有开放计划仍生效', async () => {
   const past = addDaysLocal(today, -120);
   const future = addDaysLocal(today, 120);

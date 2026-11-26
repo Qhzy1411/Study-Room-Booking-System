@@ -201,7 +201,7 @@ function ensureDemoOpenPlans(ts = now()) {
   demoPlanWindow = window;
 }
 
-function historyReservation({
+function seedReservation({
   ts,
   roomId,
   seatCode,
@@ -209,7 +209,8 @@ function historyReservation({
   date,
   startMin,
   endMin,
-  status = 'completed',
+  createdAt = parseDate(date) + (startMin - 10) * MINUTE,
+  noShow = false,
   evaluated = false,
   rating = 5,
 }) {
@@ -218,9 +219,8 @@ function historyReservation({
   const endTs = dayStart + endMin * MINUTE;
   const deadline = Math.min(startTs + 15 * MINUTE, endTs);
   const id = nextId('RSV', 'reservation', 4);
-  const createdAt = startTs - 10 * MINUTE;
   const seatId = `${roomId}-${seatCode}`;
-  if (status === 'no_show') {
+  if (noShow) {
     run(
       `INSERT INTO reservations (id, user_id, room_id, seat_id, start_ts, end_ts, status, rule_version_id, created_at, checkin_deadline, released_at, ended_at, end_reason)
        VALUES (?, ?, ?, ?, ?, ?, 'no_show', 'RV-1', ?, ?, ?, ?, 'no_show')`,
@@ -259,22 +259,28 @@ function historyReservation({
     );
     return { id, violationId };
   }
-  const checkin = startTs + 5 * MINUTE;
-  const checkout = endTs - 10 * MINUTE;
+  const scheduledCheckin = startTs + 5 * MINUTE;
+  const scheduledCheckout = endTs - 10 * MINUTE;
+  const checkin = ts >= scheduledCheckin ? scheduledCheckin : null;
+  const checkout = ts >= scheduledCheckout ? scheduledCheckout : null;
+  const status = checkout != null ? 'completed' : checkin != null ? 'using' : 'pending';
   run(
     `INSERT INTO reservations (id, user_id, room_id, seat_id, start_ts, end_ts, status, rule_version_id, created_at, checkin_deadline, released_at, ended_at, end_reason, first_checkin_at, first_checkin_method, checkout_at)
-     VALUES (?, ?, ?, ?, ?, ?, 'completed', 'RV-1', ?, ?, ?, ?, 'self_checkout', ?, 'self_qr', ?)`,
+     VALUES (?, ?, ?, ?, ?, ?, ?, 'RV-1', ?, ?, ?, ?, ?, ?, ?, ?)`,
     id,
     userId,
     roomId,
     seatId,
     startTs,
     endTs,
+    status,
     createdAt,
     deadline,
     checkout,
     checkout,
+    checkout == null ? null : 'self_checkout',
     checkin,
+    checkin == null ? null : 'self_qr',
     checkout,
   );
   run(
@@ -284,15 +290,16 @@ function historyReservation({
     startTs,
     endTs,
     createdAt,
-    'completed',
+    checkout == null ? null : 'completed',
   );
+  if (checkin == null) return { id };
   run(
     'INSERT INTO usage_segments (reservation_id, seat_id, start_ts, end_ts, close_reason) VALUES (?, ?, ?, ?, ?)',
     id,
     seatId,
     checkin,
     checkout,
-    'checkout',
+    checkout == null ? null : 'checkout',
   );
   run(
     `INSERT INTO checkins (reservation_id, at_ts, method, seat_id, operator_id) VALUES (?, ?, 'self_qr', ?, ?)`,
@@ -328,6 +335,20 @@ function historyReservation({
   return { id };
 }
 
+function seedTodayReservations(ts, today) {
+  const createdAt = parseDate(today) - MINUTE;
+  const samples = [
+    ['R1', 'A13', 'U04', 8 * 60, 9 * 60],
+    ['R1', 'A14', 'U05', 13 * 60, 14 * 60 + 30],
+    ['R1', 'A15', 'U06', 21 * 60, 22 * 60],
+    ['R2', 'B06', 'U07', 9 * 60, 10 * 60 + 30],
+    ['R2', 'B07', 'U08', 15 * 60, 16 * 60],
+    ['R2', 'B08', 'U09', 20 * 60, 21 * 60],
+  ];
+  for (const [roomId, seatCode, userId, startMin, endMin] of samples) {
+    seedReservation({ ts, roomId, seatCode, userId, date: today, startMin, endMin, createdAt });
+  }
+}
 
 /** 性能演示数据（可选）：R3 500 个座位 + 1 万条历史预约，用于 QR-01/02 压测。 */
 function seedPerf(ts, today) {
@@ -478,7 +499,7 @@ function seed({ reset = false, perf = false } = {}) {
       permissions: { canRules: true, canAudit: true, canReview: true, canStats: true },
     });
 
-    // 历史数据使用的合成学生
+    // 演示预约使用的合成学生
     const historyHash = hashPassword('123456');
     const extraStudents = [
       ['U04', '杨晨'],
@@ -553,27 +574,27 @@ function seed({ reset = false, perf = false } = {}) {
       const date = addDaysLocal(today, -daysAgo);
       const [r1Morning, r1Afternoon, r2Afternoon, r2Evening] = dailySeatCounts[7 - daysAgo];
       for (let i = 0; i < r1Morning; i += 1) {
-        historyReservation({
+        seedReservation({
           ts, roomId: 'R1', seatCode: r1Codes[i], userId: r1Users[i], date,
           startMin: morning.start, endMin: morning.end,
           evaluated: i < 3 && (daysAgo + i) % 2 === 0, rating: 3 + ((daysAgo + i) % 3),
         });
       }
       for (let i = 0; i < r1Afternoon; i += 1) {
-        historyReservation({
+        seedReservation({
           ts, roomId: 'R1', seatCode: r1Codes[i], userId: r1Users[i], date,
           startMin: afternoon.start, endMin: afternoon.end,
           evaluated: i < 3 && daysAgo % 3 === 0, rating: 3 + ((daysAgo + i) % 3),
         });
       }
       for (let i = 0; i < r2Afternoon; i += 1) {
-        historyReservation({
+        seedReservation({
           ts, roomId: 'R2', seatCode: r2Codes[i], userId: r2Users[i], date,
           startMin: 16 * 60, endMin: 17 * 60 + 30,
         });
       }
       for (let i = 0; i < r2Evening; i += 1) {
-        historyReservation({
+        seedReservation({
           ts, roomId: 'R2', seatCode: r2Codes[i], userId: r2Users[i], date,
           startMin: evening.start, endMin: evening.end,
           evaluated: (daysAgo + i) % 13 === 0, rating: 4,
@@ -582,10 +603,11 @@ function seed({ reset = false, perf = false } = {}) {
     }
     // 一条爽约样例（三天前，产生待复核事件；与其他历史预约不重叠）
     const noShowDate = addDaysLocal(today, -3);
-    historyReservation({
+    seedReservation({
       ts, roomId: 'R1', seatCode: 'A05', userId: 'U11', date: noShowDate,
-      startMin: 16 * 60 + 30, endMin: 17 * 60 + 30, status: 'no_show',
+      startMin: 16 * 60 + 30, endMin: 17 * 60 + 30, noShow: true,
     });
+    seedTodayReservations(ts, today);
     // 演示投诉（待受理）：U02 对 R1 设施问题的反馈
     const complaintId = nextId('C', 'complaint', 4);
     run(
