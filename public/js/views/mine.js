@@ -128,7 +128,7 @@ export async function renderMine(container, { navigate }) {
   async function cancelReservation(r) {
     const ok = await confirmDialog({
       title: '取消预约',
-      message: `将取消 ${r.seatCode} 座位（${timeWindowText(r)}）的预约。取消后不可再次签到，本人取消不返还当日次数与时长额度。`,
+      message: `将取消 ${r.seatCode} 座位（${timeWindowText(r)}）的预约。取消后不可再次签到，本人取消返还该预约占用的时长额度（次数额度仍计入）。`,
       confirmText: '确认取消',
       danger: true,
     });

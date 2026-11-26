@@ -229,7 +229,7 @@ export async function renderBook(container, { navigate }) {
             h('dd', {}, `${result.ruleVersion.checkinGraceMin} 分钟`),
           ),
           h('p', { class: 'notice' },
-            '请在签到窗口内到达座位并扫描桌面二维码。开始前可在“我的预约”取消；本人取消不返还当日额度。',
+            '请在签到窗口内到达座位并扫描桌面二维码。开始前可在“我的预约”取消；取消后返还该预约占用的时长额度。',
           ),
         ),
         footer: [
@@ -449,7 +449,7 @@ export async function renderBook(container, { navigate }) {
           h('ul', { style: { paddingLeft: '18px', color: 'var(--muted)', lineHeight: '1.8' } },
             h('li', {}, `每日最多创建 ${data?.rule.dailyCount ?? 4} 次、累计 ${data?.rule.dailyMinutes ?? 240} 分钟。`),
             h('li', {}, `单次至少 ${data?.rule.minMinutes ?? 30} 分钟，不跨午夜。`),
-            h('li', {}, '到座后扫描桌面二维码签到；开始前可取消，本人取消不返还额度。'),
+            h('li', {}, '到座后扫描桌面二维码签到；开始前可取消，取消后返还该预约占用的时长额度。'),
             h('li', {}, '同一座位及本人其他有效预约的时段不能重叠。'),
           ),
         ),

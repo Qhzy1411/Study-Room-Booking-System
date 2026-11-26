@@ -120,6 +120,24 @@ describe.skipIf(!executablePath)('浏览器端到端冒烟（桌面与 390px 移
     await page.close();
   });
 
+  it('场地管理员可登记没有关联预约编号的现场事件', async () => {
+    const { page, pageErrors, consoleErrors } = await newPage();
+    await loginAs(page, server.base, 1);
+    await clickNav(page, '违约与限制');
+    await page.locator('.subtabs button').filter({ hasText: '手动登记' }).click();
+    await page.getByPlaceholder('输入学号、账号或姓名，例如 U01').fill('U02');
+    const studentButton = page.getByRole('button', { name: /U02/i }).first();
+    await studentButton.waitFor({ timeout: 10000 });
+    await studentButton.click();
+    await page.locator('textarea[rows="4"]').fill('现场登记：多次提醒后仍在安静区大声通话，管理员现场核实并拍照留证。');
+    // 关联预约编号保持为空，验证无预约编号的现场事件也能登记
+    await page.getByRole('button', { name: '登记待复核事件' }).click();
+    await page.locator('.toast').filter({ hasText: '待复核事件已登记' }).waitFor({ timeout: 10000 });
+    expect(pageErrors).toEqual([]);
+    expect(consoleErrors).toEqual([]);
+    await page.close();
+  });
+
   it('系统管理员页面可加载账号、规则与审计', async () => {
     const { page, pageErrors, consoleErrors } = await newPage();
     await loginAs(page, server.base, 3);

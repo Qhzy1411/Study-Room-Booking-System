@@ -34,6 +34,7 @@ export async function renderAdminReview(container, { navigate }) {
       occurredAt: timeInput(now() - 30 * 60 * 1000),
       type: '现场事件',
       material: '',
+      reservationId: '',
     },
     fault: {
       startAt: timeInput(now() - 2 * 3600 * 1000),
@@ -142,7 +143,7 @@ export async function renderAdminReview(container, { navigate }) {
         occurredAt: state.manual.occurredAt.replace('T', ' '),
         type: state.manual.type,
         material: state.manual.material.trim(),
-        reservationId: state.manual.reservationId.trim() || null,
+        reservationId: state.manual.reservationId?.trim() || null,
       });
       toast(result.duplicated ? '相同事件已登记，返回原记录' : '待复核事件已登记');
       state.manual.material = '';
@@ -344,6 +345,11 @@ export async function renderAdminReview(container, { navigate }) {
       type: 'datetime-local', value: state.manual.occurredAt,
       on: { change: (event) => { state.manual.occurredAt = event.target.value; } },
     });
+    const reservationId = h('input', {
+      type: 'text', maxlength: 40, placeholder: '选填，例如 RSV-20261126-0001',
+      value: state.manual.reservationId,
+      on: { input: (event) => { state.manual.reservationId = event.target.value; } },
+    });
     return h('div', { class: 'stack' },
       h('div', { class: 'notice' }, '手动登记只形成待复核事件；须记录事实、时间、地点和证据，不能直接形成处罚或黑名单。重复事件按自然键去重。'),
       h('section', { class: 'card' },
@@ -354,6 +360,7 @@ export async function renderAdminReview(container, { navigate }) {
             studentPicker(),
             h('div', { class: 'field' }, h('label', {}, '事件时间'), occurred),
             h('div', { class: 'field' }, h('label', {}, '事件类型'), type),
+            h('div', { class: 'field span-2' }, h('label', {}, '关联预约编号（选填）'), reservationId),
             h('div', { class: 'field span-2' }, h('label', {}, '事实与证据说明'), material),
           ),
           h('div', { class: 'row' },

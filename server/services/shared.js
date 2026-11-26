@@ -123,19 +123,36 @@ function activeLimit(userId, roomId, ts = now()) {
   );
 }
 
+/**
+ * 单笔预约实际占用的累计时长额度（分钟）。
+ * - 场地免责记录不占额度；
+ * - 本人提前取消（开始前取消）不占时长；
+ * - 提前签退按签到至签退的实际分钟数计算，而不是整段预约时长；
+ * - 其余待签到、使用中、正常结束、爽约等仍按原定分钟数占用。
+ */
+function quotaMinutesOf(row) {
+  if (row.waived || row.status === 'cancelled') return 0;
+  if (row.checkout_at != null) {
+    const start = row.first_checkin_at ?? row.start_ts;
+    const end = Math.min(row.checkout_at, row.end_ts);
+    return Math.max(0, Math.round((end - start) / 60000));
+  }
+  return Math.round((row.end_ts - row.start_ts) / 60000);
+}
+
 /** 规则时长额度统计（按预约开始日期归属；场地免责记录不计入） */
 function quotaUsage(userId, date, rule) {
   const dayStart = parseDate(date);
   const dayEnd = dayStart + 24 * 60 * 60 * 1000;
   const rows = all(
-    `SELECT start_ts, end_ts, waived FROM reservations
+    `SELECT start_ts, end_ts, waived, status, checkout_at, first_checkin_at FROM reservations
       WHERE user_id = ? AND start_ts >= ? AND start_ts < ? AND waived = 0`,
     userId,
     dayStart,
     dayEnd,
   );
   const usedCount = rows.length;
-  const usedMinutes = rows.reduce((sum, r) => sum + Math.round((r.end_ts - r.start_ts) / 60000), 0);
+  const usedMinutes = rows.reduce((sum, r) => sum + quotaMinutesOf(r), 0);
   return {
     usedCount,
     usedMinutes,

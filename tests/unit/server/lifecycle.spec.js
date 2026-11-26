@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { DatabaseSync } from 'node:sqlite';
 import { startTestServer } from '../../helpers/server.js';
 import { createApiClient, key, setClock, bookingContext } from '../../helpers/client.js';
 
@@ -26,7 +27,7 @@ async function seatCode(seatId) {
 }
 
 beforeAll(async () => {
-  server = await startTestServer();
+  server = await startTestServer({ env: { TICK_INTERVAL_MS: '60000' } });
   s1 = createApiClient(server.base);
   await s1.login('s1');
   u01 = createApiClient(server.base);
@@ -137,13 +138,30 @@ describe('签到、暂离、签退与到期（AC-05—08、AC-10—12、AC-19）
     const code = await seatCode('R1-A03');
     const response = await u03.post(`/reservations/${reservations.noShow.id}/checkin`, { code }, { key: key() });
     expect(response.status).toBe(409);
-    const detail = await u03.get(`/reservations/${reservations.noShow.id}`);
-    expect(detail.json.reservation.status).toBe('no_show');
+    expect(response.json.error.message).toContain('爽约');
 
+    // 先查不触发补处理的接口并直接读库，确认爽约状态与待复核事件没有随签到失败被回滚。
     const violations = (await u03.get('/me/violations')).json.violations
       .filter((v) => v.reservationId === reservations.noShow.id);
     expect(violations).toHaveLength(1);
     expect(violations[0].status).toBe('pending');
+
+    const db = new DatabaseSync(server.dbPath);
+    try {
+      const stored = db
+        .prepare('SELECT status FROM reservations WHERE id = ?')
+        .get(reservations.noShow.id);
+      expect(stored.status).toBe('no_show');
+      const storedViolations = db
+        .prepare('SELECT COUNT(*) AS n FROM violations WHERE reservation_id = ?')
+        .get(reservations.noShow.id);
+      expect(storedViolations.n).toBe(1);
+    } finally {
+      db.close();
+    }
+
+    const detail = await u03.get(`/reservations/${reservations.noShow.id}`);
+    expect(detail.json.reservation.status).toBe('no_show');
   });
 
   it('签到故障登记自动撤销截止落在故障区间的爽约记录', async () => {

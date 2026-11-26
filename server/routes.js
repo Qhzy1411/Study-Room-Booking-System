@@ -260,6 +260,20 @@ router.get('/availability', requireAuth, route((req, res) => {
 
 /* ------------------------------ 学生预约 ------------------------------ */
 
+/**
+ * 到期状态先于幂等事务提交。
+ * 签到/签退/取消等写操作在幂等事务内还会再判断一次状态；若此时才把逾期预约标记为爽约，
+ * 后续业务拒绝会连同爽约记录一起回滚，出现“提示已爽约但库中仍待签到、待复核事件为 0”的不一致。
+ */
+router.use('/reservations', requireAuth, (req, res, next) => {
+  try {
+    processDue();
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.post('/reservations', requireAuth, requireRole('student'), route((req, res) => {
   const payload = {
     roomId: String(req.body.roomId || ''),
