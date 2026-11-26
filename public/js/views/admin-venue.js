@@ -34,6 +34,13 @@ export async function renderAdminVenue(container, { navigate }) {
     includeExpired: false,
     form: { seatId: '', immediate: true, startAt: '', endAt: '', reason: '' },
   };
+  let previewSequence = 0;
+  function invalidatePreview() {
+    previewSequence++;
+    state.preview = null;
+    state.cleared = false;
+  }
+
   let disposed = false;
   const root = h('div', { class: 'stack-20' });
   container.append(root);
@@ -271,24 +278,31 @@ export async function renderAdminVenue(container, { navigate }) {
     const seats = state.detail.seats.filter((s) => !s.archived);
     if (seats.length && !seats.some((s) => s.id === state.form.seatId)) state.form.seatId = seats[0].id;
     const form = state.form;
+    const previewPanel = h('div', { hidden: !state.preview });
+    function edit(field, value) {
+      if (form[field] === value) return;
+      form[field] = value;
+      invalidatePreview();
+      previewPanel.hidden = true;
+    }
     const seatSelect = h('select', {
-      on: { change: (event) => { form.seatId = event.target.value; } },
+      on: { change: (event) => { edit('seatId', event.target.value); } },
     }, seats.map((s) => h('option', { value: s.id, selected: s.id === form.seatId }, `${s.code}${s.power.status === 'faulty' ? '（插座故障）' : ''}`)));
     const immediate = h('input', {
       type: 'checkbox', checked: form.immediate,
-      on: { change: (event) => { form.immediate = event.target.checked; renderAll(); } },
+      on: { change: (event) => { edit('immediate', event.target.checked); renderAll(); } },
     });
     const start = h('input', {
       type: 'datetime-local', value: form.startAt, disabled: form.immediate,
-      on: { change: (event) => { form.startAt = event.target.value; } },
+      on: { change: (event) => { edit('startAt', event.target.value); } },
     });
     const end = h('input', {
       type: 'datetime-local', value: form.endAt,
-      on: { change: (event) => { form.endAt = event.target.value; } },
+      on: { change: (event) => { edit('endAt', event.target.value); } },
     });
     const reason = h('input', {
       type: 'text', maxlength: 120, value: form.reason, placeholder: '例如：设施检修、插座更换',
-      on: { input: (event) => { form.reason = event.target.value; } },
+      on: { input: (event) => { edit('reason', event.target.value); } },
     });
     const error = h('p', { style: { color: 'var(--danger)', fontSize: '13px' } });
     const clearedCheck = h('input', {
@@ -299,6 +313,9 @@ export async function renderAdminVenue(container, { navigate }) {
 
     const previewBtn = h('button', { class: 'btn', type: 'button' }, '预览影响');
     previewBtn.addEventListener('click', async () => {
+      invalidatePreview();
+      const sequence = previewSequence;
+      previewPanel.hidden = true;
       error.textContent = '';
       try {
         const preview = await api.post('/admin/suspensions/preview', {
@@ -308,22 +325,22 @@ export async function renderAdminVenue(container, { navigate }) {
           endAt: form.endAt.replace('T', ' '),
           reason: form.reason,
         });
-        state.preview = preview;
-        state.cleared = false;
+        if (disposed || sequence !== previewSequence) return;
+        state.preview = { ...preview, requestKey: newKey() };
         renderAll();
       } catch (err) {
-        state.preview = null;
-        error.textContent = err.message || '预览失败';
-        renderAll();
+        if (!disposed && sequence === previewSequence) error.textContent = err.message || '预览失败';
       }
     });
 
     async function commit() {
-      if (!state.preview) return;
+      if (!preview || preview !== state.preview || preview.submitting) return;
       if (state.preview.needClearance && !state.cleared) {
         toast('请先确认现场已清场', 'warn');
         return;
       }
+      preview.submitting = true;
+      submit.disabled = true;
       try {
         await api.post('/admin/suspensions', {
           seatId: form.seatId,
@@ -333,16 +350,20 @@ export async function renderAdminVenue(container, { navigate }) {
           reason: form.reason,
           cleared: state.cleared,
           impactHash: state.preview.impactHash,
-        }, { idempotencyKey: newKey() });
+        }, { idempotencyKey: preview.requestKey });
+        if (disposed || state.preview !== preview) return;
         toast('停用已提交，受影响预约已按规则处置');
-        state.preview = null;
+        invalidatePreview();
         await loadDetail();
       } catch (err) {
+        if (disposed || state.preview !== preview) return;
         if (err.status === 409) {
           toast('影响集合已变化，请重新预览后再提交', 'warn');
-          state.preview = null;
+          invalidatePreview();
           renderAll();
         } else {
+          preview.submitting = false;
+          renderAll();
           toast(err.message || '提交失败', 'error');
         }
       }
@@ -351,10 +372,32 @@ export async function renderAdminVenue(container, { navigate }) {
     const preview = state.preview;
     const submit = h('button', {
       class: 'btn primary', type: 'button',
-      disabled: !preview || (preview.needClearance && !state.cleared),
+      disabled: !preview || preview.submitting || (preview.needClearance && !state.cleared),
       on: { click: commit },
     }, '确认停用');
     const suspensions = (state.detail.suspensions || []).filter((s) => state.includeExpired || s.status === 'active');
+
+    if (preview) previewPanel.append(h('div', { class: 'card', style: { background: '#fbfcfe' } },
+      h('div', { class: 'card-body stack' },
+        h('div', { class: 'row between' },
+          h('strong', {}, `影响预览 · ${preview.seat?.code || form.seatId}`),
+          h('span', { class: 'small muted' }, `${preview.startAt} — ${preview.endAt}`),
+        ),
+        preview.affected.length
+          ? h('div', { class: 'impact-list' }, preview.affected.map((r) => h('div', { class: `impact-item ${r.status !== 'pending' ? 'danger' : ''}` },
+            h('div', { class: 'row between' },
+              h('span', { class: 'strong' }, r.userName || r.userId),
+              statusBadge(r.status),
+            ),
+            h('div', { class: 'tiny muted' }, `${r.startText}—${r.endText} · ${r.plannedAction}`),
+          )))
+          : h('p', { class: 'small muted' }, '该时段没有受影响的预约。'),
+        preview.needClearance
+          ? h('label', { class: 'check' }, clearedCheck, h('span', { class: 'text' }, '已通知使用者离场，并确认现场已清空'))
+          : null,
+        h('div', { class: 'row' }, submit),
+      ),
+    ));
 
     return h('div', { class: 'stack' },
       section('停用管理', '提交前必须预览影响；立即停用使用中或暂离中的座位需确认现场清场。到达结束时间自动恢复，已取消或关闭的预约不会复活。'),
@@ -369,29 +412,7 @@ export async function renderAdminVenue(container, { navigate }) {
             h('div', { class: 'field' }, h('label', {}, '开始时间'), start),
           ),
           h('div', { class: 'row' }, previewBtn, error),
-          preview
-            ? h('div', { class: 'card', style: { background: '#fbfcfe' } },
-              h('div', { class: 'card-body stack' },
-                h('div', { class: 'row between' },
-                  h('strong', {}, `影响预览 · ${preview.seat?.code || form.seatId}`),
-                  h('span', { class: 'small muted' }, `${preview.startAt} — ${preview.endAt}`),
-                ),
-                preview.affected.length
-                  ? h('div', { class: 'impact-list' }, preview.affected.map((r) => h('div', { class: `impact-item ${r.status !== 'pending' ? 'danger' : ''}` },
-                    h('div', { class: 'row between' },
-                      h('span', { class: 'strong' }, r.userName || r.userId),
-                      statusBadge(r.status),
-                    ),
-                    h('div', { class: 'tiny muted' }, `${r.startText}—${r.endText} · ${r.plannedAction}`),
-                  )))
-                  : h('p', { class: 'small muted' }, '该时段没有受影响的预约。'),
-                preview.needClearance
-                  ? h('label', { class: 'check' }, clearedCheck, h('span', { class: 'text' }, '已通知使用者离场，并确认现场已清空'))
-                  : null,
-                h('div', { class: 'row' }, submit),
-              ),
-            )
-            : null,
+          previewPanel,
         ),
       ),
       h('div', { class: 'card' },
