@@ -2,7 +2,7 @@ import { setContent, violationTypeLabel } from '../util.js';
 import { api, newKey, ApiError } from '../api.js';
 import {
   h, icon, toast, emptyState, openModal, confirmDialog, promptDialog,
-  statusBadge, durationText, plainBadge, inputField,
+  statusBadge, durationText, plainBadge, inputField, timeRangeText,
 } from '../util.js';
 import { openScanDialog } from '../scan.js';
 
@@ -59,7 +59,7 @@ export async function renderMine(container, { navigate }) {
   }
 
   function timeWindowText(r) {
-    return `${r.startText} — ${r.endText}`;
+    return timeRangeText(r.startText, r.endText);
   }
 
   function activeActions(r) {
@@ -190,7 +190,7 @@ export async function renderMine(container, { navigate }) {
         h('dl', { class: 'kv' },
           h('dt', {}, '自习室'), h('dd', {}, `${detail.roomName}（${detail.roomLocation}）`),
           h('dt', {}, '座位'), h('dd', {}, detail.seatCode),
-          h('dt', {}, '时段'), h('dd', {}, `${detail.startText} — ${detail.endText}`),
+          h('dt', {}, '时段'), h('dd', {}, timeRangeText(detail.startText, detail.endText)),
           h('dt', {}, '时长'), h('dd', {}, durationText(Math.round((detail.end - detail.start) / 60000))),
           h('dt', {}, '签到截止'), h('dd', {}, detail.checkinDeadlineText),
           detail.releasedAt ? h('dt', {}, '释放时刻') : null,
@@ -394,7 +394,7 @@ export async function renderMine(container, { navigate }) {
         }
         candidateBox.replaceChildren(
           heading,
-          h('p', { class: 'small muted' }, `剩余时段 ${data.remaining.startText} — ${data.remaining.endText}；换座保留结束时间与签到截止，不新增额度。`),
+          h('p', { class: 'small muted' }, `剩余时段 ${timeRangeText(data.remaining.startText, data.remaining.endText)}；换座保留结束时间与签到截止，不新增额度。`),
           h('div', { class: 'recommend-list' },
             data.candidates.map((candidate) => h('div', { class: 'recommend' },
               h('div', { class: 'top' },
@@ -517,7 +517,7 @@ export async function renderMine(container, { navigate }) {
         ),
       ),
       h('div', { class: 'meta' },
-        h('span', {}, `时段 ${r.startText} — ${r.endText}`),
+        h('span', {}, `时段 ${timeRangeText(r.startText, r.endText)}`),
         h('span', {}, `签到截止 ${r.checkinDeadlineText}`),
                 r.status === 'pending' ? h('span', {}, '请在签到截止前扫码签到') : null,
         r.status === 'away' ? h('span', {}, '暂离中，请在保留截止前返回') : null,
@@ -566,7 +566,7 @@ export async function renderMine(container, { navigate }) {
             )),
             h('tbody', {}, rows.map((r) => h('tr', {},
               h('td', {}, `${r.roomName} · ${r.seatCode}`),
-              h('td', {}, `${r.startText} — ${r.endText}`),
+              h('td', {}, timeRangeText(r.startText, r.endText)),
               h('td', {}, statusBadge(r.status)),
               h('td', {}, END_REASON[r.endReason] || r.cancelReason || '—'),
               h('td', { class: 'actions-cell' },
@@ -594,7 +594,7 @@ export async function renderMine(container, { navigate }) {
     return h('div', { class: 'list' }, items.map((r) => h('article', { class: 'record' },
       h('div', { class: 'record-top' },
         h('div', { class: 'record-title' }, h('strong', {}, `${r.roomName} · ${r.seatCode}`), statusBadge(r.status)),
-        h('span', { class: 'record-sub' }, `${r.startText} — ${r.endText}`),
+        h('span', { class: 'record-sub' }, timeRangeText(r.startText, r.endText)),
       ),
       h('div', { class: 'record-actions' },
         h('button', { class: 'btn sm primary', type: 'button', on: { click: () => evaluationDialog(r) } }, '评价本次预约'),

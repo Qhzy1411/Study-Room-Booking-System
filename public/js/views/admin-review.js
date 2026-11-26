@@ -2,7 +2,7 @@ import { setContent, roomText } from '../util.js';
 import { api, ApiError, qs } from '../api.js';
 import { store, beijingDate, beijingTime, now } from '../state.js';
 import {
-  h, icon, toast, emptyState, plainBadge, promptDialog, debounce, inputField, requiredMark,
+  h, icon, toast, emptyState, plainBadge, promptDialog, debounce, inputField, requiredMark, timeRangeText,
 } from '../util.js';
 
 const TABS = [
@@ -276,7 +276,7 @@ export async function renderAdminReview(container, { navigate }) {
       h('div', { class: 'meta' },
         h('span', {}, `学生 ${v.userName}（${v.userId}）`),
         h('span', {}, `场地 ${v.roomName}`),
-        v.reservation ? h('span', {}, `预约时段 ${v.reservation.startText}—${v.reservation.endText}`) : null,
+        v.reservation ? h('span', {}, `预约时段 ${timeRangeText(v.reservation.startText, v.reservation.endText)}`) : null,
       ),
       h('div', { class: 'record-note' }, v.material || '—'),
       v.decisionReason ? h('div', { class: 'record-sub' }, `复核：${v.decisionReason}`) : null,
@@ -309,7 +309,7 @@ export async function renderAdminReview(container, { navigate }) {
           plainBadge(revoked ? '已解除' : active ? '生效中' : '未生效/已过期', revoked ? 'gray' : active ? 'red' : 'amber'),
           plainBadge(l.roomName, 'gray'),
         ),
-        h('span', { class: 'record-sub' }, `${l.startText} — ${l.endText}`),
+        h('span', { class: 'record-sub' }, timeRangeText(l.startText, l.endText)),
       ),
       h('div', { class: 'record-note' }, l.reason),
       h('div', { class: 'record-sub' }, `依据：${l.basis.map((b) => `${b.occurredAtText}（${b.status === 'revoked' ? '已撤销' : '已生效'}）`).join('、')}`),
@@ -401,7 +401,7 @@ export async function renderAdminReview(container, { navigate }) {
         ? h('div', { class: 'list' }, state.faults.map((f) => h('article', { class: 'record' },
           h('div', { class: 'record-top' },
             h('div', { class: 'record-title' }, h('strong', {}, f.function === 'checkin' ? '签到故障' : '预约故障'), plainBadge(f.roomName, 'gray')),
-            h('span', { class: 'record-sub' }, `${f.startText} — ${f.endText}`),
+            h('span', { class: 'record-sub' }, timeRangeText(f.startText, f.endText)),
           ),
           h('div', { class: 'record-note' }, f.description),
           h('div', { class: 'record-sub' }, `受影响未签到记录：${f.impactedViolations.length ? f.impactedViolations.map((v) => `${v.occurredAtText}（${v.status}）`).join('、') : '无'}`),

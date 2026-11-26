@@ -274,8 +274,14 @@ export function violationTypeLabel(type) {
   return '违规事件';
 }
 
+export function timeRangeText(start, end) {
+  if (!start || !end) return start || end || '—';
+  const date = /^\d{4}-\d{2}-\d{2} /.exec(start)?.[0];
+  return `${start}—${date && end.startsWith(date) ? end.slice(date.length) : end}`;
+}
+
 export function describeReservation(r) {
-  return [r.roomName, r.seatCode ? `${r.seatCode} 座位` : null, r.startText && r.endText ? `${r.startText}—${r.endText}` : null]
+  return [r.roomName, r.seatCode ? `${r.seatCode} 座位` : null, r.startText && r.endText ? timeRangeText(r.startText, r.endText) : null]
     .filter(Boolean).join(' · ');
 }
 
@@ -288,7 +294,7 @@ export function describeViolation(v) {
 }
 
 export function describeLimit(l) {
-  return [l.roomName, l.startText && l.endText ? `${l.startText}—${l.endText}` : null].filter(Boolean).join(' · ');
+  return [l.roomName, l.startText && l.endText ? timeRangeText(l.startText, l.endText) : null].filter(Boolean).join(' · ');
 }
 
 export function roomText(room) {

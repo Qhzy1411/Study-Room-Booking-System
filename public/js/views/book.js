@@ -2,7 +2,7 @@ import { setContent, roomText } from '../util.js';
 import { api, newKey, qs, ApiError } from '../api.js';
 import { store, beijingDate, now, dateLabel, weekdayLabel, beijingTime } from '../state.js';
 import {
-  h, icon, toast, emptyState, openModal, durationText, inputField, requiredMark,
+  h, icon, toast, emptyState, openModal, durationText, inputField, requiredMark, timeRangeText,
 } from '../util.js';
 import { createSeatMap, seatMapLegend } from '../seatmap.js';
 
@@ -222,7 +222,7 @@ export async function renderBook(container, { navigate }) {
             h('dt', {}, '座位'),
             h('dd', {}, reservation.seatCode),
             h('dt', {}, '时段'),
-            h('dd', {}, `${reservation.startText} — ${reservation.endText}`),
+            h('dd', {}, timeRangeText(reservation.startText, reservation.endText)),
             h('dt', {}, '签到截止'),
             h('dd', {}, reservation.checkinDeadlineText),
             h('dt', {}, '签到宽限'),

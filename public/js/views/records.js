@@ -1,6 +1,6 @@
 import { setContent } from '../util.js';
 import { api, ApiError } from '../api.js';
-import { h, icon, toast, emptyState, plainBadge } from '../util.js';
+import { h, icon, toast, emptyState, plainBadge, timeRangeText } from '../util.js';
 
 const VIOLATION_TONE = { pending: 'amber', effective: 'red', revoked: 'gray' };
 
@@ -73,7 +73,7 @@ export async function renderRecords(container, { navigate }) {
           plainBadge(state[0], state[1]),
           plainBadge(l.roomName, 'gray'),
         ),
-        h('span', { class: 'record-sub' }, `${l.startText} — ${l.endText}`),
+        h('span', { class: 'record-sub' }, timeRangeText(l.startText, l.endText)),
       ),
       h('div', { class: 'record-note' }, l.reason),
       h('div', { class: 'record-sub' },

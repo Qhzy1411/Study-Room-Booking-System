@@ -1,7 +1,7 @@
 import { setContent, roomText } from '../util.js';
 import { api, ApiError, qs } from '../api.js';
 import { store, beijingDate, beijingTime } from '../state.js';
-import { h, icon, toast, emptyState, plainBadge } from '../util.js';
+import { h, icon, toast, emptyState, plainBadge, timeRangeText } from '../util.js';
 import { barChart, lineChart } from '../charts.js';
 
 const REFRESH_MS = 10000;
@@ -193,7 +193,7 @@ export async function renderAdminStats(container, { navigate }) {
                     h('div', { class: 'row between' },
                       h('div', {},
                         h('h2', {}, `${data.room.name} · ${data.date}`),
-                        h('p', { class: 'card-sub' }, `${data.room.location} · 快照 ${data.snapshotText} · 窗口 ${data.metrics.window?.startText || '—'} — ${data.metrics.window?.endText || '—'}`),
+                        h('p', { class: 'card-sub' }, `${data.room.location} · 快照 ${data.snapshotText} · 窗口 ${timeRangeText(data.metrics.window?.startText, data.metrics.window?.endText)}`),
                       ),
                       h('div', { class: 'row' },
                         plainBadge(data.metrics.hasPlan ? `开放 ${data.metrics.plan.start}—${data.metrics.plan.end}` : '当日无开放计划', data.metrics.hasPlan ? 'blue' : 'gray'),

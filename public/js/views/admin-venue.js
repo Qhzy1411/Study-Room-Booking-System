@@ -3,7 +3,7 @@ import { api, ApiError, newKey, qs } from '../api.js';
 import { beijingDate, beijingTime, now } from '../state.js';
 import {
   h, icon, toast, emptyState, openModal, confirmDialog, promptDialog,
-  plainBadge, statusBadge, section, inputField, requiredMark,
+  plainBadge, statusBadge, section, inputField, requiredMark, timeRangeText,
 } from '../util.js';
 
 const TABS = [
@@ -212,7 +212,7 @@ export async function renderAdminVenue(container, { navigate }) {
           h('td', {}, seat.current
             ? h('div', { class: 'stack', style: { gap: '2px' } },
               statusBadge(seat.current.status),
-              h('span', { class: 'tiny muted' }, `${seat.current.startText}—${seat.current.endText}`))
+              h('span', { class: 'tiny muted' }, timeRangeText(seat.current.startText, seat.current.endText)))
             : h('span', { class: 'muted' }, '空闲')),
           h('td', {}, seat.upcomingCount ? `${seat.upcomingCount} 条` : '—'),
           h('td', {}, seat.archived ? plainBadge('已归档', 'gray') : plainBadge('启用', 'green')),
@@ -413,7 +413,7 @@ export async function renderAdminVenue(container, { navigate }) {
       h('div', { class: 'card-body stack' },
         h('div', { class: 'row between' },
           h('strong', {}, `影响预览 · ${preview.seat?.code || form.seatId}`),
-          h('span', { class: 'small muted' }, `${preview.startAt} — ${preview.endAt}`),
+          h('span', { class: 'small muted' }, timeRangeText(preview.startAt, preview.endAt)),
         ),
         preview.affected.length
           ? h('div', { class: 'impact-list' }, preview.affected.map((r) => h('div', { class: `impact-item ${r.status !== 'pending' ? 'danger' : ''}` },
@@ -421,7 +421,7 @@ export async function renderAdminVenue(container, { navigate }) {
               h('span', { class: 'strong' }, r.userName || r.userId),
               statusBadge(r.status),
             ),
-            h('div', { class: 'tiny muted' }, `${r.startText}—${r.endText} · ${r.plannedAction}`),
+            h('div', { class: 'tiny muted' }, `${timeRangeText(r.startText, r.endText)} · ${r.plannedAction}`),
           )))
           : h('p', { class: 'small muted' }, '该时段没有受影响的预约。'),
         preview.needClearance
@@ -459,7 +459,7 @@ export async function renderAdminVenue(container, { navigate }) {
             h('thead', {}, h('tr', {}, h('th', {}, '座位'), h('th', {}, '时段'), h('th', {}, '原因'), h('th', {}, '状态'), h('th', { class: 'actions-cell' }, '操作'))),
             h('tbody', {}, suspensions.map((s) => h('tr', {},
               h('td', {}, s.seatCode),
-              h('td', {}, `${s.startText}—${s.endText}`),
+              h('td', {}, timeRangeText(s.startText, s.endText)),
               h('td', {}, s.reason),
               h('td', {}, s.status === 'restored' ? plainBadge('已提前恢复', 'gray') : plainBadge('生效中', 'amber')),
               h('td', { class: 'actions-cell' },
@@ -548,13 +548,13 @@ export async function renderAdminVenue(container, { navigate }) {
         h('div', { class: 'row' }, statusBadge(detail.status), plainBadge(detail.userName || detail.userId, 'gray')),
         h('dl', { class: 'kv' },
           h('dt', {}, '座位'), h('dd', {}, `${detail.roomName} ${detail.seatCode}`),
-          h('dt', {}, '时段'), h('dd', {}, `${detail.startText}—${detail.endText}`),
+          h('dt', {}, '时段'), h('dd', {}, timeRangeText(detail.startText, detail.endText)),
           h('dt', {}, '签到截止'), h('dd', {}, detail.checkinDeadlineText),
           h('dt', {}, '实际签到'), h('dd', {}, detail.firstCheckinAtText || '未签到'),
           h('dt', {}, '结束方式'), h('dd', {}, detail.endReason || '—'),
         ),
         detail.segments?.length > 1
-          ? h('div', {}, h('h3', {}, '保留分段'), h('ul', { class: 'timeline' }, detail.segments.map((s) => h('li', {}, `${s.seatCode} · ${s.startText}—${s.endText}`))))
+          ? h('div', {}, h('h3', {}, '保留分段'), h('ul', { class: 'timeline' }, detail.segments.map((s) => h('li', {}, `${s.seatCode} · ${timeRangeText(s.startText, s.endText)}`))))
           : null,
       ),
       footer: [h('button', { class: 'btn', type: 'button', on: { click: () => dialog.close() } }, '关闭')],
