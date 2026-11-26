@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1020" height="1350" viewBox="0 0 1020 1350" aria-label="UC-D01-学生用例图">
+<defs><marker id="arrow" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L10 5 L1 9" fill="none" stroke="#222" stroke-width="1.8"/></marker></defs>
+<rect width="1020" height="1350" fill="white"/>
+<text x="510.0" y="45" font-family="Microsoft YaHei, sans-serif" font-size="28" font-weight="600" text-anchor="middle" fill="#222">UC-D01  学生用例图</text>
+<rect x="340" y="85" width="620" height="1220" rx="0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text x="650" y="122" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" text-anchor="middle" fill="#222">智慧自习室预约与管理系统</text>
+<g stroke="#222" stroke-width="2" fill="white"><circle cx="125.0" cy="628.0" r="16"/><path d="M125.0 644.0 V696.0 M93.0 662.0 H157.0 M125.0 696.0 L95.0 730.0 M125.0 696.0 L155.0 730.0"/></g>
+<text data-node="actor" x="125.0" y="765.0" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">学生</text>
+<ellipse cx="640.0" cy="205.0" rx="220.0" ry="45.0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="u1" x="640.0" y="213.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">查询并预约座位</text>
+<polyline points="165,665.0 420,205" fill="none" stroke="#222" stroke-width="1.8"/>
+<ellipse cx="640.0" cy="355.0" rx="220.0" ry="45.0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="u2" x="640.0" y="363.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">扫码签到、签退与暂离返回</text>
+<polyline points="165,665.0 420,355" fill="none" stroke="#222" stroke-width="1.8"/>
+<ellipse cx="640.0" cy="505.0" rx="220.0" ry="45.0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="u3" x="640.0" y="513.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">取消预约与查询本人记录</text>
+<polyline points="165,665.0 420,505" fill="none" stroke="#222" stroke-width="1.8"/>
+<ellipse cx="640.0" cy="655.0" rx="220.0" ry="45.0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="u4" x="640.0" y="663.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">投诉申诉与使用评价</text>
+<polyline points="165,665.0 420,655" fill="none" stroke="#222" stroke-width="1.8"/>
+<ellipse cx="640.0" cy="805.0" rx="220.0" ry="45.0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="u5" x="640.0" y="813.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">维护本人资料</text>
+<polyline points="165,665.0 420,805" fill="none" stroke="#222" stroke-width="1.8"/>
+<ellipse cx="640.0" cy="955.0" rx="220.0" ry="45.0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="u6" x="640.0" y="963.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">查看到座路线</text>
+<polyline points="165,665.0 420,955" fill="none" stroke="#222" stroke-width="1.8"/>
+<ellipse cx="640.0" cy="1105.0" rx="220.0" ry="45.0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="u7" x="640.0" y="1113.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">按条件与偏好选座</text>
+<polyline points="165,665.0 420,1105" fill="none" stroke="#222" stroke-width="1.8"/>
+<ellipse cx="640.0" cy="1255.0" rx="220.0" ry="45.0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="u8" x="640.0" y="1263.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">报告现场问题并确认换座</text>
+<polyline points="165,665.0 420,1255" fill="none" stroke="#222" stroke-width="1.8"/>
+</svg>

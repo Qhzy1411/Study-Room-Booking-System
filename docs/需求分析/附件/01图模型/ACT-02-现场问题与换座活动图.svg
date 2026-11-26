@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1250" height="1500" viewBox="0 0 1250 1500" aria-label="ACT-02-现场问题与换座活动图">
+<defs><marker id="arrow" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L10 5 L1 9" fill="none" stroke="#222" stroke-width="1.8"/></marker></defs>
+<rect width="1250" height="1500" fill="white"/>
+<text x="625.0" y="45" font-family="Microsoft YaHei, sans-serif" font-size="28" font-weight="600" text-anchor="middle" fill="#222">ACT-02  现场问题与本人确认换座</text>
+<ellipse cx="620.0" cy="92.0" rx="12.0" ry="12.0" fill="#222" stroke="#222" stroke-width="1.8"/>
+<rect x="400" y="150" width="440" height="85" rx="14" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="report" x="620.0" y="200.9" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">学生报告现场问题</text>
+<rect x="400" y="300" width="440" height="85" rx="14" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="record" x="620.0" y="350.9" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">关联原预约并显示处理进度</text>
+<rect x="400" y="570" width="440" height="85" rx="14" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="candidate" x="620.0" y="620.9" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">系统筛选剩余时段与必要条件</text>
+<rect x="400" y="720" width="440" height="85" rx="14" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="confirm" x="620.0" y="770.9" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">学生选择并确认目标座位</text>
+<rect x="400" y="870" width="440" height="85" rx="14" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="check" x="620.0" y="920.9" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">系统重新校验状态与资源</text>
+<polygon points="620.0,430 730,480.0 620.0,530 510,480.0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="choice" x="620.0" y="488.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">选择换座？</text>
+<rect x="50" y="590" width="270" height="95" rx="14" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="wait" x="185.0" y="628.9" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">保留原预约</text>
+<text data-node="wait" x="185.0" y="662.9" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">等待处理</text>
+<polygon points="620.0,1020 730,1070.0 620.0,1120 510,1070.0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="ok" x="620.0" y="1077.35" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="21" fill="#222">校验及提交成功？</text>
+<rect x="50" y="1240" width="330" height="105" rx="14" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="fail" x="215.0" y="1283.9" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">有效原预约保留</text>
+<text data-node="fail" x="215.0" y="1317.9" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">显示失败原因</text>
+<rect x="820" y="1240" width="360" height="105" rx="14" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="done" x="1000.0" y="1283.9" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">完整更新保留分段</text>
+<text data-node="done" x="1000.0" y="1317.9" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">显示新座位与路线</text>
+<polyline points="620,104 620,150" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<polyline points="620,235 620,300" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<polyline points="620,385 620,430" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<polyline points="620,530 620,570" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<polyline points="510,480 185,480 185,590" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<polyline points="620,655 620,720" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<polyline points="620,805 620,870" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<polyline points="620,955 620,1020" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<polyline points="510,1070 215,1070 215,1240" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<polyline points="730,1070 1000,1070 1000,1240" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<text x="685" y="558" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" text-anchor="start" fill="#222">是</text>
+<text x="335" y="458" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" text-anchor="start" fill="#222">否</text>
+<text x="355" y="1048" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" text-anchor="start" fill="#222">否</text>
+<text x="860" y="1048" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" text-anchor="start" fill="#222">是</text>
+<ellipse cx="185.0" cy="775.0" rx="15.0" ry="15.0" fill="white" stroke="#222" stroke-width="1.8"/>
+<circle cx="185.0" cy="775.0" r="10.0" fill="#222"/>
+<ellipse cx="215.0" cy="1435.0" rx="15.0" ry="15.0" fill="white" stroke="#222" stroke-width="1.8"/>
+<circle cx="215.0" cy="1435.0" r="10.0" fill="#222"/>
+<ellipse cx="1000.0" cy="1435.0" rx="15.0" ry="15.0" fill="white" stroke="#222" stroke-width="1.8"/>
+<circle cx="1000.0" cy="1435.0" r="10.0" fill="#222"/>
+<polyline points="185,685 185,760" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<polyline points="215,1345 215,1420" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<polyline points="1000,1345 1000,1420" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+</svg>

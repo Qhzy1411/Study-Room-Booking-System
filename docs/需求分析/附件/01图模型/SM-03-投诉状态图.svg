@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1250" height="830" viewBox="0 0 1250 830" aria-label="SM-03-投诉状态图">
+<defs><marker id="arrow" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L10 5 L1 9" fill="none" stroke="#222" stroke-width="1.8"/></marker></defs>
+<rect width="1250" height="830" fill="white"/>
+<text x="625.0" y="42" font-family="Microsoft YaHei, sans-serif" font-size="28" font-weight="600" text-anchor="middle" fill="#222">SM-03  投诉与现场问题处理</text>
+<ellipse cx="220.0" cy="102.0" rx="12.0" ry="12.0" fill="#222" stroke="#222" stroke-width="1.8"/>
+<rect x="70" y="200" width="300" height="90" rx="14" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="pending" x="220.0" y="253.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">待受理</text>
+<rect x="650" y="200" width="300" height="90" rx="14" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="handling" x="800.0" y="253.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">处理中</text>
+<rect x="650" y="600" width="300" height="90" rx="14" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="answered" x="800.0" y="653.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">已答复</text>
+<rect x="70" y="600" width="300" height="90" rx="14" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="closed" x="220.0" y="653.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">已关闭</text>
+<polyline points="220,114 220,200" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<text x="390" y="155" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" text-anchor="middle" fill="#222">CT-01 提交</text>
+<polyline points="370,245 650,245" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<text x="510" y="220" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" text-anchor="middle" fill="#222">CT-02 受理</text>
+<polyline points="710,290 710,600" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<text x="570" y="460" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" text-anchor="middle" fill="#222">CT-03 答复</text>
+<polyline points="890,600 890,290" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<text x="1060" y="460" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" text-anchor="middle" fill="#222">CT-04 补充材料</text>
+<polyline points="650,645 370,645" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<text x="510" y="620" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" text-anchor="middle" fill="#222">CT-05 确认关闭</text>
+</svg>

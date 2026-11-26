@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1250" height="800" viewBox="0 0 1250 800" aria-label="SM-02-暂离状态图">
+<defs><marker id="arrow" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L10 5 L1 9" fill="none" stroke="#222" stroke-width="1.8"/></marker></defs>
+<rect width="1250" height="800" fill="white"/>
+<text x="625.0" y="42" font-family="Microsoft YaHei, sans-serif" font-size="28" font-weight="600" text-anchor="middle" fill="#222">SM-02  预约暂离分支</text>
+<rect x="70" y="150" width="300" height="90" rx="14" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="use" x="220.0" y="203.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">使用中</text>
+<rect x="650" y="150" width="300" height="90" rx="14" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="leave" x="800.0" y="203.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">暂离中</text>
+<rect x="70" y="580" width="300" height="90" rx="14" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="finish" x="220.0" y="633.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">已完成</text>
+<rect x="650" y="580" width="300" height="90" rx="14" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="abnormal" x="800.0" y="633.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">异常关闭</text>
+<polyline points="370,180 650,180" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<text x="510" y="155" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" text-anchor="middle" fill="#222">ST-06 暂离</text>
+<polyline points="650,215 370,215" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<text x="510" y="275" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" text-anchor="middle" fill="#222">ST-07 返回</text>
+<polyline points="720,240 720,400 220,400 220,580" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<text x="470" y="375" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" text-anchor="middle" fill="#222">ST-12 签退或到期</text>
+<polyline points="850,240 850,580" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<text x="1050" y="380" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" text-anchor="middle" fill="#222">ST-08 暂离超时</text>
+<text x="1050" y="412" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" text-anchor="middle" fill="#222">ST-13 立即停用</text>
+
+</svg>

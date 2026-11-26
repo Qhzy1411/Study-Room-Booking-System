@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="510" viewBox="0 0 1800 510" aria-label="G-01-目标树">
+<defs><marker id="arrow" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L10 5 L1 9" fill="none" stroke="#222" stroke-width="1.8"/></marker></defs>
+<rect width="1800" height="510" fill="white"/>
+<text x="900" y="48" font-family="Microsoft YaHei, sans-serif" font-size="30" font-weight="600" text-anchor="middle" fill="#222">G-01  业务目标</text>
+<rect x="620" y="105" width="560" height="90" rx="0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="root" x="900.0" y="159.8" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="28" fill="#222">改善选座到使用的完整过程</text>
+<rect x="30" y="335" width="265" height="110" rx="0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="g0" x="162.5" y="381.1" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="26" fill="#222">便捷选座</text>
+<text data-node="g0" x="162.5" y="417.1" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="26" fill="#222">与到座</text>
+<polyline points="900,195 900,265 162.5,265 162.5,335" fill="none" stroke="#222" stroke-width="1.8"/>
+<rect x="325" y="335" width="265" height="110" rx="0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="g1" x="457.5" y="381.1" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="26" fill="#222">准确统计</text>
+<text data-node="g1" x="457.5" y="417.1" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="26" fill="#222">与状态说明</text>
+<polyline points="900,195 900,265 457.5,265 457.5,335" fill="none" stroke="#222" stroke-width="1.8"/>
+<rect x="620" y="335" width="265" height="110" rx="0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="g2" x="752.5" y="381.1" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="26" fill="#222">及时释放</text>
+<text data-node="g2" x="752.5" y="417.1" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="26" fill="#222">可用时段</text>
+<polyline points="900,195 900,265 752.5,265 752.5,335" fill="none" stroke="#222" stroke-width="1.8"/>
+<rect x="915" y="335" width="265" height="110" rx="0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="g3" x="1047.5" y="381.1" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="26" fill="#222">现场问题</text>
+<text data-node="g3" x="1047.5" y="417.1" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="26" fill="#222">处理可追踪</text>
+<polyline points="900,195 900,265 1047.5,265 1047.5,335" fill="none" stroke="#222" stroke-width="1.8"/>
+<rect x="1210" y="335" width="265" height="110" rx="0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="g4" x="1342.5" y="381.1" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="26" fill="#222">预约公平</text>
+<text data-node="g4" x="1342.5" y="417.1" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="26" fill="#222">权限安全</text>
+<polyline points="900,195 900,265 1342.5,265 1342.5,335" fill="none" stroke="#222" stroke-width="1.8"/>
+<rect x="1505" y="335" width="265" height="110" rx="0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="g5" x="1637.5" y="381.1" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="26" fill="#222">换座保障</text>
+<text data-node="g5" x="1637.5" y="417.1" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="26" fill="#222">原预约权益</text>
+<polyline points="900,195 900,265 1637.5,265 1637.5,335" fill="none" stroke="#222" stroke-width="1.8"/>
+</svg>

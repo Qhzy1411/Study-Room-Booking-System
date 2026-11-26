@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1390" height="1050" viewBox="0 0 1390 1050" aria-label="SM-01-预约主状态图">
+<defs><marker id="arrow" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L10 5 L1 9" fill="none" stroke="#222" stroke-width="1.8"/></marker></defs>
+<rect width="1390" height="1050" fill="white"/>
+<text x="695.0" y="42" font-family="Microsoft YaHei, sans-serif" font-size="28" font-weight="600" text-anchor="middle" fill="#222">SM-01  预约主生命周期</text>
+<ellipse cx="650.0" cy="87.0" rx="12.0" ry="12.0" fill="#222" stroke="#222" stroke-width="1.8"/>
+<rect x="500" y="170" width="300" height="90" rx="14" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="pending" x="650.0" y="198" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">待签到</text>
+<rect x="500" y="470" width="300" height="90" rx="14" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="use" x="650.0" y="498" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">使用中</text>
+<rect x="50" y="470" width="300" height="90" rx="14" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="cancel" x="200.0" y="523.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">已取消</text>
+<rect x="1030" y="170" width="300" height="90" rx="14" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="noshow" x="1180.0" y="223.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">已爽约</text>
+<rect x="1030" y="470" width="300" height="90" rx="14" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="abnormal" x="1180.0" y="523.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">异常关闭</text>
+<rect x="500" y="850" width="300" height="90" rx="14" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="finish" x="650.0" y="903.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">已完成</text>
+<polyline points="650,99 650,170" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<text x="510" y="140" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" text-anchor="middle" fill="#222">ST-01 创建</text>
+<polyline points="650,260 650,470" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<text x="780" y="375" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" text-anchor="middle" fill="#222">ST-02 扫码签到</text>
+<polyline points="500,215 200,215 200,470" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<text x="350" y="285" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" text-anchor="middle" fill="#222">ST-05 取消</text>
+<text x="350" y="317" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" text-anchor="middle" fill="#222">ST-11 停用</text>
+<polyline points="800,215 1030,215" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<text x="915" y="145" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" text-anchor="middle" fill="#222">ST-04</text>
+<text x="915" y="177" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" text-anchor="middle" fill="#222">签到到期</text>
+<polyline points="800,515 1030,515" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<text x="915" y="440" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" text-anchor="middle" fill="#222">ST-10</text>
+<text x="915" y="472" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" text-anchor="middle" fill="#222">立即停用</text>
+<polyline points="650,560 650,850" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<text x="820" y="710" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" text-anchor="middle" fill="#222">ST-09</text>
+<text x="820" y="742" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" text-anchor="middle" fill="#222">主动签退或到期</text>
+
+
+
+<line x1="500" y1="210" x2="800" y2="210" stroke="#222" stroke-width="1.4"/>
+<text x="650" y="240" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="20" fill="#222">ST-15 换座 / 更新座位</text>
+<line x1="500" y1="510" x2="800" y2="510" stroke="#222" stroke-width="1.4"/>
+<text x="650" y="540" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="20" fill="#222">ST-15 换座 / 更新座位</text>
+</svg>

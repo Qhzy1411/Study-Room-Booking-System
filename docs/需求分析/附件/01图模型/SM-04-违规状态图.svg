@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1390" height="780" viewBox="0 0 1390 780" aria-label="SM-04-违规状态图">
+<defs><marker id="arrow" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L10 5 L1 9" fill="none" stroke="#222" stroke-width="1.8" /></marker></defs>
+<rect width="1390" height="780" fill="white" />
+<text x="695.0" y="42" font-family="Microsoft YaHei, sans-serif" font-size="28" font-weight="600" text-anchor="middle" fill="#222">SM-04  违约记录复核生命周期</text>
+<ellipse cx="650.0" cy="102.0" rx="12.0" ry="12.0" fill="#222" stroke="#222" stroke-width="1.8" />
+<rect x="500" y="210" width="300" height="90" rx="14" fill="white" stroke="#222" stroke-width="1.8" />
+<text data-node="pending" x="650.0" y="263.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">待复核</text>
+<rect x="70" y="540" width="300" height="90" rx="14" fill="white" stroke="#222" stroke-width="1.8" />
+<text data-node="active" x="220.0" y="593.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">生效</text>
+<rect x="1030" y="540" width="300" height="90" rx="14" fill="white" stroke="#222" stroke-width="1.8" />
+<text data-node="void" x="1180.0" y="593.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">已撤销</text>
+<polyline points="650,114 650,210" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)" />
+<text x="865" y="170" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" text-anchor="middle" fill="#222">VT-01 事件登记</text>
+<polyline points="500,255 220,255 220,540" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)" />
+<text x="370" y="395" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" text-anchor="middle" fill="#222">VT-02 复核成立</text>
+<polyline points="800,255 1180,255 1180,540" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)" />
+<text x="1010" y="395" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" text-anchor="middle" fill="#222">VT-03 复核撤销</text>
+<polyline points="370,585 1030,585" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)" />
+<text x="700" y="560" font-family="Microsoft YaHei, sans-serif" font-size="23" font-weight="400" text-anchor="middle" fill="#222">VT-04 申诉或故障改判</text>
+</svg>

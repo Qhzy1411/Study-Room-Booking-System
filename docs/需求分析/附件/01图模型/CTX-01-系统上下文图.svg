@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="800" viewBox="0 0 1400 800" aria-label="CTX-01-系统上下文图">
+<defs><marker id="arrow" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L10 5 L1 9" fill="none" stroke="#222" stroke-width="1.8"/></marker></defs>
+<rect width="1400" height="800" fill="white"/>
+<text x="700.0" y="42" font-family="Microsoft YaHei, sans-serif" font-size="28" font-weight="600" text-anchor="middle" fill="#222">CTX-01  系统上下文图</text>
+<rect x="40" y="340" width="220" height="130" rx="0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="s" x="150.0" y="414.8" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="28" fill="#222">学生</text>
+<rect x="510" y="310" width="390" height="190" rx="0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="sys" x="705.0" y="395.8" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="28" fill="#222">智慧自习室预约</text>
+<text data-node="sys" x="705.0" y="433.8" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="28" fill="#222">与管理系统</text>
+<rect x="510" y="90" width="390" height="85" rx="0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="m" x="705.0" y="141.6" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="26" fill="#222">场地管理员</text>
+<rect x="1140" y="340" width="220" height="130" rx="0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="a" x="1250.0" y="414.1" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="26" fill="#222">系统管理员</text>
+<polyline points="260,370 510,370" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<polyline points="510,440 260,440" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<polyline points="620,175 620,310" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<polyline points="800,310 800,175" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<polyline points="1140,370 900,370" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<polyline points="900,440 1140,440" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<text x="385" y="330" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" text-anchor="middle" fill="#222">预约、选座、问题报告</text>
+<text x="385" y="490" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" text-anchor="middle" fill="#222">凭证、路线、换座结果</text>
+<text x="460" y="235" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" text-anchor="middle" fill="#222">资源与设施状态维护</text>
+<text x="960" y="235" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" text-anchor="middle" fill="#222">现场问题、处理与统计</text>
+<text x="1020" y="330" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" text-anchor="middle" fill="#222">账号、角色、规则</text>
+<text x="1020" y="490" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" text-anchor="middle" fill="#222">配置与审计结果</text>
+
+
+</svg>

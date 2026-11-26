@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1050" viewBox="0 0 1440 1050" aria-label="DM-03-到座与换座领域图">
+<defs><marker id="arrow" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L10 5 L1 9" fill="none" stroke="#222" stroke-width="1.8"/></marker></defs>
+<rect width="1440" height="1050" fill="white"/>
+<text x="720.0" y="45" font-family="Microsoft YaHei, sans-serif" font-size="28" font-weight="600" text-anchor="middle" fill="#222">DM-03  到座与换座领域关系</text>
+<rect x="50" y="110" width="300" height="125" rx="0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="map" x="200.0" y="163.55" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="23" fill="#222">场地地图</text>
+<text data-node="map" x="200.0" y="197.55" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="23" fill="#222">配置版本、通道</text>
+<rect x="570" y="110" width="300" height="125" rx="0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="seat" x="720.0" y="163.55" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="23" fill="#222">座位</text>
+<text data-node="seat" x="720.0" y="197.55" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="23" fill="#222">座位号、位置</text>
+<rect x="1090" y="110" width="300" height="125" rx="0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="facility" x="1240.0" y="163.55" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="23" fill="#222">设施状态</text>
+<text data-node="facility" x="1240.0" y="197.55" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="23" fill="#222">类别、状态、核实时间</text>
+<rect x="50" y="470" width="300" height="125" rx="0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="problem" x="200.0" y="523.55" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="23" fill="#222">现场问题</text>
+<text data-node="problem" x="200.0" y="557.55" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="23" fill="#222">原座位、状态、处理历史</text>
+<rect x="570" y="470" width="300" height="125" rx="0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="res" x="720.0" y="523.55" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="23" fill="#222">预约</text>
+<text data-node="res" x="720.0" y="557.55" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="23" fill="#222">当前座位、原结束时间</text>
+<rect x="1090" y="470" width="300" height="125" rx="0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="swap" x="1240.0" y="523.55" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="23" fill="#222">换座记录</text>
+<text data-node="swap" x="1240.0" y="557.55" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="23" fill="#222">原座位、目标、切换时刻</text>
+<rect x="570" y="830" width="300" height="125" rx="0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="segment" x="720.0" y="883.55" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="23" fill="#222">保留与使用分段</text>
+<text data-node="segment" x="720.0" y="917.55" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="23" fill="#222">座位、起止、登记使用</text>
+<polyline points="350,170 570,170" fill="none" stroke="#222" stroke-width="1.8"/>
+<text x="460" y="150" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" text-anchor="middle" fill="#222">包含</text>
+<text x="375" y="205" font-family="Microsoft YaHei, sans-serif" font-size="21" font-weight="400" text-anchor="middle" fill="#222">1</text>
+<text x="525" y="205" font-family="Microsoft YaHei, sans-serif" font-size="21" font-weight="400" text-anchor="middle" fill="#222">0..*</text>
+<polyline points="870,170 1090,170" fill="none" stroke="#222" stroke-width="1.8"/>
+<text x="980" y="150" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" text-anchor="middle" fill="#222">配置</text>
+<text x="895" y="205" font-family="Microsoft YaHei, sans-serif" font-size="21" font-weight="400" text-anchor="middle" fill="#222">1</text>
+<text x="1045" y="205" font-family="Microsoft YaHei, sans-serif" font-size="21" font-weight="400" text-anchor="middle" fill="#222">0..*</text>
+<polyline points="350,530 570,530" fill="none" stroke="#222" stroke-width="1.8"/>
+<text x="460" y="510" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" text-anchor="middle" fill="#222">关联</text>
+<text x="390" y="565" font-family="Microsoft YaHei, sans-serif" font-size="21" font-weight="400" text-anchor="middle" fill="#222">0..*</text>
+<text x="540" y="565" font-family="Microsoft YaHei, sans-serif" font-size="21" font-weight="400" text-anchor="middle" fill="#222">1</text>
+<polyline points="870,530 1090,530" fill="none" stroke="#222" stroke-width="1.8"/>
+<text x="980" y="510" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" text-anchor="middle" fill="#222">记录</text>
+<text x="895" y="565" font-family="Microsoft YaHei, sans-serif" font-size="21" font-weight="400" text-anchor="middle" fill="#222">1</text>
+<text x="1045" y="565" font-family="Microsoft YaHei, sans-serif" font-size="21" font-weight="400" text-anchor="middle" fill="#222">0..*</text>
+<polyline points="720,235 720,470" fill="none" stroke="#222" stroke-width="1.8"/>
+<text x="825" y="360" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" text-anchor="middle" fill="#222">当前座位</text>
+<text x="750" y="275" font-family="Microsoft YaHei, sans-serif" font-size="21" font-weight="400" text-anchor="middle" fill="#222">1</text>
+<text x="760" y="445" font-family="Microsoft YaHei, sans-serif" font-size="21" font-weight="400" text-anchor="middle" fill="#222">0..*</text>
+<polyline points="720,595 720,830" fill="none" stroke="#222" stroke-width="1.8"/>
+<text x="830" y="720" font-family="Microsoft YaHei, sans-serif" font-size="22" font-weight="400" text-anchor="middle" fill="#222">按座位分段</text>
+<text x="750" y="630" font-family="Microsoft YaHei, sans-serif" font-size="21" font-weight="400" text-anchor="middle" fill="#222">1</text>
+<text x="760" y="805" font-family="Microsoft YaHei, sans-serif" font-size="21" font-weight="400" text-anchor="middle" fill="#222">1..*</text>
+</svg>

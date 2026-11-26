@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1000" viewBox="0 0 1440 1000" aria-label="UC-D02-管理用例图">
+<defs><marker id="arrow" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L10 5 L1 9" fill="none" stroke="#222" stroke-width="1.8"/></marker></defs>
+<rect width="1440" height="1000" fill="white"/>
+<text x="720" y="45" font-family="Microsoft YaHei, sans-serif" font-size="30" font-weight="600" text-anchor="middle" fill="#222">UC-D02  管理用例图</text>
+<rect x="235" y="85" width="970" height="850" rx="0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text x="720" y="125" font-family="Microsoft YaHei, sans-serif" font-size="26" font-weight="400" text-anchor="middle" fill="#222">智慧自习室预约与管理系统</text>
+<g stroke="#222" stroke-width="2" fill="white"><circle cx="85.0" cy="448" r="16"/><path d="M85.0 464 V516 M53.0 482 H117.0 M85.0 516 L55.0 550 M85.0 516 L115.0 550"/></g>
+<text data-node="manager" x="85.0" y="585" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">场地管理员</text>
+<g stroke="#222" stroke-width="2" fill="white"><circle cx="1350.0" cy="448" r="16"/><path d="M1350.0 464 V516 M1318.0 482 H1382.0 M1350.0 516 L1320.0 550 M1350.0 516 L1380.0 550"/></g>
+<text data-node="sysadmin" x="1350.0" y="585" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">系统管理员</text>
+<ellipse cx="480.0" cy="214.0" rx="205.0" ry="39.0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="r" x="480.0" y="222.05" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="23" fill="#222">维护资源与停用恢复</text>
+<polyline points="125,485 200,485 200,214 275,214" fill="none" stroke="#222" stroke-width="1.8"/>
+<ellipse cx="480.0" cy="334.0" rx="205.0" ry="39.0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="v" x="480.0" y="342.05" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="23" fill="#222">登记复核违约与预约限制</text>
+<polyline points="125,485 200,485 200,334 275,334" fill="none" stroke="#222" stroke-width="1.8"/>
+<ellipse cx="480.0" cy="454.0" rx="205.0" ry="39.0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="c" x="480.0" y="462.05" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="23" fill="#222">处理投诉申诉与评价</text>
+<polyline points="125,485 200,485 200,454 275,454" fill="none" stroke="#222" stroke-width="1.8"/>
+<ellipse cx="480.0" cy="574.0" rx="205.0" ry="39.0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="s" x="480.0" y="582.05" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="23" fill="#222">查看统计与使用记录</text>
+<polyline points="125,485 200,485 200,574 275,574" fill="none" stroke="#222" stroke-width="1.8"/>
+<ellipse cx="480.0" cy="694.0" rx="205.0" ry="39.0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="f" x="480.0" y="702.05" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="23" fill="#222">核实设施状态</text>
+<polyline points="125,485 200,485 200,694 275,694" fill="none" stroke="#222" stroke-width="1.8"/>
+<ellipse cx="480.0" cy="814.0" rx="205.0" ry="39.0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="p" x="480.0" y="822.05" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="23" fill="#222">处理现场问题</text>
+<polyline points="125,485 200,485 200,814 275,814" fill="none" stroke="#222" stroke-width="1.8"/>
+<ellipse cx="960.0" cy="277.5" rx="205.0" ry="42.5" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="a" x="960.0" y="285.55" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="23" fill="#222">维护与停用账号</text>
+<polyline points="1310,485 1240,485 1240,277.5 1165,277.5" fill="none" stroke="#222" stroke-width="1.8"/>
+<ellipse cx="960.0" cy="442.5" rx="205.0" ry="42.5" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="auth" x="960.0" y="450.55" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="23" fill="#222">分配角色及场地权限</text>
+<polyline points="1310,485 1240,485 1240,442.5 1165,442.5" fill="none" stroke="#222" stroke-width="1.8"/>
+<ellipse cx="960.0" cy="607.5" rx="205.0" ry="42.5" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="rules" x="960.0" y="615.55" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="23" fill="#222">配置及发布预约规则</text>
+<polyline points="1310,485 1240,485 1240,607.5 1165,607.5" fill="none" stroke="#222" stroke-width="1.8"/>
+<ellipse cx="960.0" cy="772.5" rx="205.0" ry="42.5" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="audit" x="960.0" y="780.55" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="23" fill="#222">查询关键操作审计记录</text>
+<polyline points="1310,485 1240,485 1240,772.5 1165,772.5" fill="none" stroke="#222" stroke-width="1.8"/>
+</svg>

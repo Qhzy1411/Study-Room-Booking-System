@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1100" viewBox="0 0 1200 1100" aria-label="ACT-01-预约提交活动图">
+<defs><marker id="arrow" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L10 5 L1 9" fill="none" stroke="#222" stroke-width="1.8"/></marker></defs>
+<rect width="1200" height="1100" fill="white"/>
+<text x="600.0" y="42" font-family="Microsoft YaHei, sans-serif" font-size="28" font-weight="600" text-anchor="middle" fill="#222">ACT-01  查询与预约提交活动</text>
+<rect x="40" y="70" width="370" height="990" rx="0" fill="white" stroke="#222" stroke-width="1.8"/>
+<rect x="410" y="70" width="750" height="990" rx="0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text x="225" y="110" font-family="Microsoft YaHei, sans-serif" font-size="25" font-weight="600" text-anchor="middle" fill="#222">学生</text>
+<text x="785" y="110" font-family="Microsoft YaHei, sans-serif" font-size="25" font-weight="600" text-anchor="middle" fill="#222">系统</text>
+<ellipse cx="225.0" cy="147.0" rx="12.0" ry="12.0" fill="#222" stroke="#222" stroke-width="1.8"/>
+<rect x="90" y="210" width="270" height="90" rx="14" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="choose" x="225.0" y="263.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">选择时段和条件</text>
+<rect x="550" y="210" width="450" height="90" rx="14" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="query" x="775.0" y="246.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">查询可用座位</text>
+<text data-node="query" x="775.0" y="280.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">返回查询时刻</text>
+<rect x="90" y="400" width="270" height="90" rx="14" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="confirm" x="225.0" y="436.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">选座并确认提交</text>
+<text data-node="confirm" x="225.0" y="470.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">携带操作键</text>
+<rect x="550" y="400" width="450" height="90" rx="14" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="check" x="775.0" y="436.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">提交时重新核验</text>
+<text data-node="check" x="775.0" y="470.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">权限、开放、互斥、额度、必要设施</text>
+<polygon points="775.0,560 870,620.0 775.0,680 680,620.0" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="decision" x="775.0" y="628.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">通过？</text>
+<rect x="90" y="800" width="270" height="90" rx="14" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="reject" x="225.0" y="836.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">查看拒绝原因</text>
+<text data-node="reject" x="225.0" y="870.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">本次预约未创建</text>
+<rect x="550" y="800" width="450" height="90" rx="14" fill="white" stroke="#222" stroke-width="1.8"/>
+<text data-node="commit" x="775.0" y="836.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">整体创建预约和审计</text>
+<text data-node="commit" x="775.0" y="870.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="24" fill="#222">返回预约编号</text>
+<ellipse cx="225.0" cy="995.0" rx="15.0" ry="15.0" fill="white" stroke="#222" stroke-width="1.8"/>
+<circle cx="225.0" cy="995.0" r="10.0" fill="#222"/>
+<ellipse cx="775.0" cy="995.0" rx="15.0" ry="15.0" fill="white" stroke="#222" stroke-width="1.8"/>
+<circle cx="775.0" cy="995.0" r="10.0" fill="#222"/>
+<polyline points="225,159 225,210" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<polyline points="360,255 550,255" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<polyline points="775,300 775,350 225,350 225,400" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<polyline points="360,445 550,445" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<polyline points="775,490 775,560" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<polyline points="680,620 225,620 225,800" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<polyline points="775,680 775,800" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<polyline points="225,890 225,980" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<polyline points="775,890 775,980" fill="none" stroke="#222" stroke-width="1.8" marker-end="url(#arrow)"/>
+<text x="465" y="595" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" text-anchor="middle" fill="#222">不通过</text>
+<text x="850" y="745" font-family="Microsoft YaHei, sans-serif" font-size="24" font-weight="400" text-anchor="middle" fill="#222">通过</text>
+</svg>
