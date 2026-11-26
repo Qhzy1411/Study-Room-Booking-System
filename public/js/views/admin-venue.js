@@ -57,7 +57,9 @@ export async function renderAdminVenue(container, { navigate }) {
     }
   }
 
+  let detailRequest = 0;
   async function loadDetail() {
+    const request = ++detailRequest;
     if (!state.roomId) {
       state.detail = null;
       state.loading = false;
@@ -67,17 +69,19 @@ export async function renderAdminVenue(container, { navigate }) {
     state.loading = true;
     renderAll();
     try {
-      state.detail = await api.get(`/admin/rooms/${state.roomId}${qs({ planMonth: state.planMonth })}`);
+      const detail = await api.get(`/admin/rooms/${state.roomId}${qs({ planMonth: state.planMonth })}`);
+      if (disposed || request !== detailRequest) return;
+      state.detail = detail;
       if (state.detail.seats?.length && !state.form.seatId) state.form.seatId = state.detail.seats[0].id;
       if (!state.form.startAt) state.form.startAt = timeInput(now());
       if (!state.form.endAt) state.form.endAt = timeInput(now() + 2 * 3600 * 1000);
     } catch (error) {
+      if (disposed || request !== detailRequest) return;
       toast(error instanceof ApiError ? error.message : '加载场地详情失败', 'error');
       state.detail = null;
-    } finally {
-      state.loading = false;
-      renderAll();
     }
+    state.loading = false;
+    renderAll();
   }
 
   async function loadLive() {
@@ -111,6 +115,17 @@ export async function renderAdminVenue(container, { navigate }) {
       toast(error.message || '加载评价失败', 'error');
     }
     renderAll();
+  }
+
+  function switchRoom(roomId) {
+    state.roomId = roomId;
+    state.detail = null;
+    state.liveRows = null;
+    state.qrSheet = null;
+    state.reviews = null;
+    invalidatePreview();
+    state.form = { seatId: '', immediate: true, startAt: '', endAt: '', reason: '' };
+    loadDetail();
   }
 
   function setTab(tab) {
@@ -609,7 +624,7 @@ export async function renderAdminVenue(container, { navigate }) {
         h('div', { class: 'head-actions' },
           h('select', {
             style: { minWidth: '200px' },
-            on: { change: (event) => { state.roomId = event.target.value; state.detail = null; state.liveRows = null; state.qrSheet = null; loadDetail(); } },
+            on: { change: (event) => { switchRoom(event.target.value); } },
           }, state.rooms.map((r) => h('option', { value: r.id, selected: r.id === state.roomId }, roomText(r)))),
           h('button', { class: 'btn sm', type: 'button', on: { click: () => { state.detail = null; loadDetail(); } } }, icon('refresh'), '刷新'),
         ),
@@ -618,9 +633,10 @@ export async function renderAdminVenue(container, { navigate }) {
         type: 'button', role: 'tab', 'aria-selected': state.tab === value ? 'true' : 'false',
         on: { click: () => setTab(value) },
       }, label))),
-      state.loading || !state.detail
+      state.loading
         ? h('section', { class: 'card' }, h('div', { class: 'card-body' }, h('p', { class: 'muted' }, '正在加载场地信息…')))
-        : state.tab === 'seats' ? renderSeats()
+        : !state.detail ? emptyState('场地详情加载失败', '请点击刷新重试。')
+          : state.tab === 'seats' ? renderSeats()
           : state.tab === 'plans' ? renderPlans()
             : state.tab === 'suspension' ? renderSuspension()
               : state.tab === 'qr' ? renderQr()
