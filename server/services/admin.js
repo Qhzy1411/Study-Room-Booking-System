@@ -5,6 +5,7 @@ import { audit } from '../audit.js';
 import { fmt, parseDate, parseTime } from '../time.js';
 import { hashPassword, destroyUserSessions } from '../auth.js';
 import { toRuleDto, currentRule } from './shared.js';
+import { ensureDemoOpenPlans } from '../seed.js';
 
 function isSysAdmin(user) {
   return user.role === 'sys_admin';
@@ -250,7 +251,7 @@ function listRuleVersions(admin) {
 }
 
 function publishRuleVersion(admin, payload) {
-  return tx(() => {
+  const result = tx(() => {
     if (!isSysAdmin(admin) && !admin.canRules) throw forbidden('没有规则维护权限');
     const fields = {
       advance_days: Number(payload.advanceDays),
@@ -303,6 +304,8 @@ function publishRuleVersion(admin, payload) {
     });
     return { rule: toRuleDto(get('SELECT * FROM rule_versions WHERE id = ?', id)) };
   });
+  ensureDemoOpenPlans();
+  return result;
 }
 
 function listAudit(admin, { limit = 200, action = null, actorId = null } = {}) {
@@ -356,6 +359,7 @@ function setDemoClock(admin, { at }) {
   if (!isDemo()) throw forbidden('演示时钟未启用');
   if (!isSysAdmin(admin)) throw forbidden('只有系统管理员可以调整演示时钟');
   if (at === 'now' || at == null) {
+    ensureDemoOpenPlans(Date.now());
     syncToRealTime();
     return clockInfo();
   }
@@ -366,6 +370,7 @@ function setDemoClock(admin, { at }) {
   const min = parseTime(m[2]);
   if (day == null || min == null) throw badRequest('时间格式不正确');
   const target = day + min * 60000 + (Number(m[3] || 0) * 1000);
+  ensureDemoOpenPlans(target);
   setNow(target);
   audit({
     actor: admin,
