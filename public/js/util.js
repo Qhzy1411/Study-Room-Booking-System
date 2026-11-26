@@ -58,6 +58,15 @@ export function setContent(el, ...children) {
   return el;
 }
 
+export function inputField(label, control, { required = true, wide = false } = {}) {
+  control.required = required;
+  return h('label', { class: wide ? 'field span-2' : 'field' },
+    h('span', { class: 'field-label' }, label,
+      required ? h('span', { class: 'required-mark', 'aria-hidden': 'true' }, '*') : null),
+    control,
+  );
+}
+
 const ICONS = {
   logo: '<path d="M5 4.5h6.2a2 2 0 0 1 2 2V22a2 2 0 0 0-2-2H5z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/><path d="M19 4.5h-5.8a2 2 0 0 0-2 2V22a2 2 0 0 1 2-2H19z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>',
   calendar: '<rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',

@@ -3,7 +3,7 @@ import { api, ApiError, newKey, qs } from '../api.js';
 import { beijingDate, beijingTime, now } from '../state.js';
 import {
   h, icon, toast, emptyState, openModal, confirmDialog, promptDialog,
-  plainBadge, statusBadge, section,
+  plainBadge, statusBadge, section, inputField,
 } from '../util.js';
 
 const TABS = [
@@ -297,11 +297,13 @@ export async function renderAdminVenue(container, { navigate }) {
     if (seats.length && !seats.some((s) => s.id === state.form.seatId)) state.form.seatId = seats[0].id;
     const form = state.form;
     const previewPanel = h('div', { hidden: !state.preview });
+    const error = h('p', { role: 'status', style: { color: 'var(--danger)', fontSize: '13px' } });
     function edit(field, value) {
       if (form[field] === value) return;
       form[field] = value;
       invalidatePreview();
       previewPanel.hidden = true;
+      error.textContent = '';
     }
     const seatSelect = h('select', {
       on: { change: (event) => { edit('seatId', event.target.value); } },
@@ -322,7 +324,6 @@ export async function renderAdminVenue(container, { navigate }) {
       type: 'text', maxlength: 120, value: form.reason, placeholder: '例如：设施检修、插座更换',
       on: { input: (event) => { edit('reason', event.target.value); } },
     });
-    const error = h('p', { style: { color: 'var(--danger)', fontSize: '13px' } });
     const clearedCheck = h('input', {
       type: 'checkbox',
       checked: state.cleared,
@@ -335,6 +336,18 @@ export async function renderAdminVenue(container, { navigate }) {
       const sequence = previewSequence;
       previewPanel.hidden = true;
       error.textContent = '';
+      const missing = [
+        [seatSelect, '请选择目标座位'],
+        [reason, '请填写停用原因'],
+        ...(!form.immediate ? [[start, '请填写停用开始时间']] : []),
+        [end, '请填写停用结束时间'],
+      ].find(([input]) => !input.value.trim());
+      if (missing) {
+        const [input, message] = missing;
+        error.textContent = message;
+        input.focus();
+        return;
+      }
       try {
         const preview = await api.post('/admin/suspensions/preview', {
           seatId: form.seatId,
@@ -422,12 +435,11 @@ export async function renderAdminVenue(container, { navigate }) {
       h('div', { class: 'card' },
         h('div', { class: 'card-body stack' },
           h('div', { class: 'form-grid' },
-            h('div', { class: 'field' }, h('label', {}, '目标座位'), seatSelect),
-            h('div', { class: 'field' }, h('label', {}, '停用原因'), reason),
-            h('div', { class: 'field' }, h('label', {}, '立即开始'),
-              h('label', { class: 'check', style: { minHeight: '40px', alignItems: 'center' } }, immediate, h('span', { class: 'text' }, '立即停用（开始时间取当前业务时间）'))),
-            h('div', { class: 'field' }, h('label', {}, '结束时间'), end),
-            h('div', { class: 'field' }, h('label', {}, '开始时间'), start),
+            inputField('目标座位', seatSelect),
+            inputField('停用原因', reason),
+            h('label', { class: 'check span-2' }, immediate, h('span', { class: 'text' }, '立即停用（开始时间取当前业务时间）')),
+            inputField('开始时间', start, { required: !form.immediate }),
+            inputField('结束时间', end),
           ),
           h('div', { class: 'row' }, previewBtn, error),
           previewPanel,
