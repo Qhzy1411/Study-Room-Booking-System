@@ -435,7 +435,7 @@ function createReservation(user, payload) {
 
     const userConflicts = overlappingUserReservations(user.id, startTs, endTs);
     if (userConflicts.length) {
-      throw conflict('你在该时间段已有其他有效预约，同一用户的有效预约时段不能重叠', {
+      throw conflict('你在此时段已有预约，请选择其他时段', {
         conflicts: userConflicts.map((r) => ({ id: r.id, start: fmt(r.start_ts), end: fmt(r.end_ts) })),
       });
     }
@@ -613,7 +613,7 @@ function cancelReservation(user, id) {
       );
     }
     if (now() >= row.start_ts) {
-      throw unprocessable('预约已经开始，不能取消；如无法到场请按签到规则处理');
+      throw unprocessable('预约已开始，无法取消');
     }
     const ts = now();
     closeRetentionAt(row.id, ts, 'cancelled');

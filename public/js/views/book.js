@@ -113,7 +113,7 @@ export async function renderBook(container, { navigate }) {
         const match = data.seats.find((s) => s.id === state.selectedSeat.id);
         if (!match || match.state !== 'available') {
           state.selectedSeat = null;
-          toast('所选座位已不符合当前条件，已清除选择，请重新选座', 'warn');
+          toast('所选座位已不可预约，请重新选座', 'warn');
         } else {
           state.selectedSeat = match;
         }
@@ -208,15 +208,12 @@ export async function renderBook(container, { navigate }) {
       const reservation = result.reservation;
       state.selectedSeat = null;
       state.agreed = false;
-      toast(result.replayed ? '该预约已提交过，以下是原结果' : '预约成功');
       const dialog = openModal({
         title: '预约成功',
         body: h('div', { class: 'stack' },
-          h('div', { class: 'notice success' },
-            h('strong', {}, '预约已创建'),
-            '，当前状态为“待签到”。',
-          ),
           h('dl', { class: 'kv' },
+            h('dt', {}, '预约号'),
+            h('dd', {}, reservation.id),
             h('dt', {}, '自习室'),
             h('dd', {}, `${reservation.roomName}（${reservation.roomLocation}）`),
             h('dt', {}, '座位'),
@@ -225,11 +222,11 @@ export async function renderBook(container, { navigate }) {
             h('dd', {}, timeRangeText(reservation.startText, reservation.endText)),
             h('dt', {}, '签到截止'),
             h('dd', {}, reservation.checkinDeadlineText),
-            h('dt', {}, '签到宽限'),
-            h('dd', {}, `${result.ruleVersion.checkinGraceMin} 分钟`),
+            h('dt', {}, '规则版本'),
+            h('dd', {}, reservation.ruleVersionId),
           ),
           h('p', { class: 'notice' },
-            '请在签到窗口内到达座位并扫描桌面二维码。开始前可在“我的预约”取消；取消后返还该预约占用的时长额度。',
+            '到座后扫描桌面二维码签到。',
           ),
         ),
         footer: [
@@ -240,11 +237,9 @@ export async function renderBook(container, { navigate }) {
       await query();
     } catch (error) {
       if (error.status !== 0) state.bookingKey = null;
-      const message = error instanceof ApiError ? error.message : '预约提交失败';
+      const message = error.status === 0 ? '预约结果待确认，请在网络恢复后查看“我的预约”。'
+        : error instanceof ApiError ? error.message : '预约提交失败';
       toast(message, 'error');
-      if (error.status === 409 && error.details?.conflicts) {
-        toast('与原预约冲突的时段将保留原记录，请重新查询可用座位。', 'warn');
-      }
       await query({ preserveSelection: true });
     } finally {
       state.busy = false;
@@ -318,7 +313,7 @@ export async function renderBook(container, { navigate }) {
       h('div', { class: 'hero-icon' }, icon('book')),
       h('div', { class: 'grow' },
         h('div', { style: { fontWeight: '700' } }, roomText(room)),
-        h('p', {}, room.description || '按必要条件选座，系统将解释推荐理由。'),
+        h('p', {}, room.description),
       ),
       h('div', { class: 'right small muted' },
         h('div', {}, `评分 ${room.rating?.average ?? '—'} / 5（${room.rating?.count || 0} 条）`),
@@ -331,7 +326,7 @@ export async function renderBook(container, { navigate }) {
     const data = state.availability;
     if (!data) {
       return h('section', { class: 'card' },
-        h('div', { class: 'card-body' }, h('p', { class: 'muted' }, state.busy ? '正在查询可用座位…' : '点击“查询座位”查看可预约座位。')),
+        h('div', { class: 'card-body' }, h('p', { class: 'muted' }, state.busy ? '正在查询可用座位…' : '请查询座位。')),
       );
     }
     const map = state.roomDetail?.map;
@@ -344,15 +339,10 @@ export async function renderBook(container, { navigate }) {
         seatMapLegend(),
       ),
       h('div', { class: 'card-body' },
-        data.restricted
-          ? h('div', { class: 'notice danger', style: { marginBottom: '14px' } },
-            `你当前处于预约限制期（${data.restriction.start} 至 ${data.restriction.end}），不能创建新预约。`)
-          : null,
         h('div', { class: 'row', style: { marginBottom: '12px' } },
           h('span', { class: 'badge blue plain' }, `开放时段 ${data.openPlan?.start || '—'}—${data.openPlan?.end || '—'}`),
           h('span', { class: 'badge plain' }, `每日额度 ${data.quota.usedCount}/${data.quota.limitCount} 次 · ${data.quota.usedMinutes}/${data.quota.limitMinutes} 分钟`),
           h('span', { class: 'badge plain' }, `单次至少 ${data.rule.minMinutes} 分钟`),
-          data.needPower ? h('span', { class: 'badge cyan plain' }, '必要条件：可用插座') : null,
         ),
         map
           ? h('div', { class: 'floor-scroll' },
@@ -382,7 +372,6 @@ export async function renderBook(container, { navigate }) {
       h('div', { class: 'card-head' },
         h('div', {},
           h('h2', {}, '推荐座位'),
-          h('p', { class: 'card-sub' }, `按“${data.preference === 'window' ? '靠窗优先' : '离入口较近'}”排序。`),
         ),
       ),
       h('div', { class: 'card-body' },
@@ -401,7 +390,7 @@ export async function renderBook(container, { navigate }) {
                 on: { click: () => selectSeat(seat) },
               }, state.selectedSeat?.id === seat.id ? '已选择' : '选择'),
             ),
-            h('div', { class: 'reasons' }, seat.reasons?.[0] || seat.recommendReason || ''),
+            h('div', { class: 'reasons' }, seat.recommendReason || seat.reasons?.[0] || ''),
           )),
         ),
       ),
@@ -416,8 +405,8 @@ export async function renderBook(container, { navigate }) {
       h('div', { class: 'card-head' }, h('h2', {}, '预约信息')),
       h('div', { class: 'card-body stack' },
         h('div', { class: 'selected-seat' },
-          h('strong', {}, seat?.code || '未选择'),
-          seat ? h('span', { class: 'badge green plain' }, '可预约') : h('span', { class: 'badge gray plain' }, '请选择座位'),
+          h('strong', {}, seat?.code || '请选择座位'),
+          seat ? h('span', { class: 'badge green plain' }, '可预约') : null,
         ),
         seat
           ? h('div', { class: 'row', style: { gap: '6px' } },
@@ -425,7 +414,7 @@ export async function renderBook(container, { navigate }) {
             h('span', { class: `badge ${seat.power === 'normal' ? 'gray' : 'amber'} plain` }, seat.power === 'normal' ? '插座正常' : '插座故障'),
             seat.distanceMeters != null ? h('span', { class: 'badge gray plain' }, `距入口 ${seat.distanceMeters} 米`) : null,
           )
-          : h('p', { class: 'small muted' }, '在座位图中选择绿色座位，或从推荐列表选择。'),
+          : null,
         h('dl', { class: 'kv' },
           h('dt', {}, '自习室'),
           h('dd', {}, data?.room?.name || '—'),
@@ -435,8 +424,8 @@ export async function renderBook(container, { navigate }) {
           h('dd', {}, `${state.filters.start} — ${state.filters.end}`),
           h('dt', {}, '时长'),
           h('dd', {}, durationText(Math.max(0, duration))),
-          h('dt', {}, '签到截止'),
-          h('dd', {}, data ? data.rule.checkinGraceMin : 15, ' 分钟内（不超过结束时间）'),
+          h('dt', {}, '签到时间'),
+          h('dd', {}, `预约开始后 ${data?.rule.checkinGraceMin ?? 15} 分钟内，且须在预约结束前签到`),
         ),
         h('details', { class: 'small' },
           h('summary', { style: { cursor: 'pointer', color: 'var(--muted)' } }, '预约与取消规则'),
@@ -448,14 +437,14 @@ export async function renderBook(container, { navigate }) {
           ),
         ),
         data?.restricted
-          ? h('div', { class: 'notice danger' }, '当前处于预约限制期，暂不能提交新预约。')
+          ? h('div', { class: 'notice danger' }, `预约受限（${timeRangeText(data.restriction.start, data.restriction.end)}），暂不能预约。`)
           : null,
         h('label', { class: 'check' },
           h('input', {
             type: 'checkbox', checked: state.agreed, required: true,
             on: { change: (event) => { state.agreed = event.target.checked; renderAll(); } },
           }),
-          h('span', { class: 'text' }, '我已阅读并同意预约规则，并确认所选座位与时段。', requiredMark()),
+          h('span', { class: 'text' }, '我已阅读并同意预约规则', requiredMark()),
         ),
         seat && !state.agreed && data && !data.restricted
           ? h('p', { class: 'small muted' }, '请先勾选预约规则确认项。')
@@ -474,15 +463,9 @@ export async function renderBook(container, { navigate }) {
       return h('div', { class: 'notice warn', role: 'status' }, '查询条件已修改，请点击“查询座位”查看最新结果。');
     }
     const data = state.availability;
-    if (!data) return null;
+    if (!data?.open) return null;
     const available = data.seats.filter((seat) => seat.state === 'available').length;
-    const recommended = data.recommendations.map((seat) => seat.code).join('、');
-    return h('div', { class: `notice ${data.open ? 'success' : 'warn'}`, role: 'status' },
-      h('strong', {}, data.open ? `查询成功：${available} 个座位可预约` : '查询完成：当日无开放计划'),
-      ` · ${data.start}—${data.end}`,
-      data.open && recommended ? ` · 推荐 ${recommended}` : '',
-      h('span', { class: 'small muted' }, ` · ${data.queryTimeText}`),
-    );
+    return h('div', { class: 'small muted', role: 'status' }, `${available} 个座位可预约`);
   }
 
   function renderAll() {
@@ -491,7 +474,6 @@ export async function renderBook(container, { navigate }) {
       h('header', { class: 'page-head' },
         h('div', {},
           h('h1', {}, '预约座位'),
-          h('p', {}, '按必要条件筛选，按偏好排序。'),
         ),
         h('div', { class: 'head-actions' },
           h('button', { class: 'btn sm', type: 'button', on: { click: () => navigate('/mine') } }, icon('ticket'), '我的预约'),

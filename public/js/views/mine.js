@@ -128,14 +128,14 @@ export async function renderMine(container, { navigate }) {
   async function cancelReservation(r) {
     const ok = await confirmDialog({
       title: '取消预约',
-      message: `将取消 ${r.seatCode} 座位（${timeWindowText(r)}）的预约。取消后不可再次签到，本人取消返还该预约占用的时长额度（次数额度仍计入）。`,
+      message: `将取消 ${r.seatCode} 座位（${timeWindowText(r)}）的预约。取消后返还时长额度，预约次数仍计入。`,
       confirmText: '确认取消',
       danger: true,
     });
     if (!ok) return;
     try {
       await api.post(`/reservations/${r.id}/cancel`, {}, { idempotencyKey: newKey() });
-      toast('预约已取消，保留时段已释放');
+      toast('预约已取消');
       await load();
     } catch (error) {
       toast(error.message || '取消失败', 'error');
@@ -145,13 +145,13 @@ export async function renderMine(container, { navigate }) {
   async function checkout(r) {
     const ok = await confirmDialog({
       title: '签退',
-      message: `确认结束 ${r.seatCode} 的使用并释放剩余时段？签退后不可恢复。`,
+      message: `确认签退并释放 ${r.seatCode} 的剩余时段？`,
       confirmText: '确认签退',
     });
     if (!ok) return;
     try {
       await api.post(`/reservations/${r.id}/checkout`, {}, { idempotencyKey: newKey() });
-      toast('已签退，预约完成');
+      toast('已签退');
       await load();
     } catch (error) {
       toast(error.message || '签退失败', 'error');
@@ -236,7 +236,7 @@ export async function renderMine(container, { navigate }) {
           : null,
         detail.siteIssues.length
           ? h('div', { class: 'notice' },
-            `现场问题：${detail.siteIssues.map((c) => `${c.createdAtText}（${c.statusLabel}）`).join('、')}。换座不关闭原问题。`)
+            `现场问题：${detail.siteIssues.map((c) => `${c.createdAtText}（${c.statusLabel}）`).join('、')}`)
           : null,
         detail.evaluation
           ? h('div', { class: 'notice success' },
@@ -273,7 +273,7 @@ export async function renderMine(container, { navigate }) {
       save.disabled = true;
       try {
         await api.post(`/reservations/${reservation.id}/evaluation`, { rating, content: text.value.trim() });
-        toast(existing ? '评价已更新，修改历史已保留' : '评价已提交');
+        toast(existing ? '评价已更新' : '评价已提交');
         dialog.close();
         await load();
       } catch (err) {
@@ -303,7 +303,7 @@ export async function renderMine(container, { navigate }) {
         text.value = existing.content || '';
         renderStars();
         info.hidden = false;
-        info.textContent = '本预约已有评价，保存将更新同一条评价并保留修改历史。';
+        info.textContent = '正在编辑已有评价';
       }
     }).catch(() => {});
   }
@@ -330,7 +330,7 @@ export async function renderMine(container, { navigate }) {
       try {
         const data = await api.get(`/reservations/${reservation.id}/site-issues`);
         if (!data.issues.length) {
-          progress.replaceChildren(h('p', { class: 'small muted' }, '尚未提交现场问题。提交后管理员核实处理；换座不会自动关闭问题。'));
+          progress.replaceChildren(h('p', { class: 'small muted' }, '尚未提交现场问题'));
         } else {
           progress.replaceChildren(
             h('h3', {}, '处理进度'),
@@ -353,12 +353,12 @@ export async function renderMine(container, { navigate }) {
               issue.status === 'answered'
                 ? h('div', { class: 'row' },
                   h('button', { class: 'btn sm', type: 'button', on: { click: async () => {
-                    const body = await promptDialog({ title: '补充材料', label: '补充说明', message: '补充后投诉回到处理中，原答复保留。', required: true });
+                    const body = await promptDialog({ title: '补充材料', label: '补充说明', message: '补充后将重新处理。', required: true });
                     if (!body) return;
                     try { await api.post(`/complaints/${issue.id}/supplement`, { body }); toast('补充材料已提交'); refreshProgress(); } catch (e) { toast(e.message, 'error'); }
                   } } }, '补充材料'),
                   h('button', { class: 'btn sm', type: 'button', on: { click: async () => {
-                    const ok = await confirmDialog({ title: '确认关闭', message: '确认现场问题已经解决并关闭？关闭后原记录仍保留。', confirmText: '确认关闭' });
+                    const ok = await confirmDialog({ title: '确认关闭', message: '确认问题已解决并关闭？', confirmText: '确认关闭' });
                     if (!ok) return;
                     try { await api.post(`/complaints/${issue.id}/close`, {}); toast('问题已关闭'); refreshProgress(); } catch (e) { toast(e.message, 'error'); }
                   } } }, '确认已解决'),
@@ -375,10 +375,10 @@ export async function renderMine(container, { navigate }) {
 
     async function refreshCandidates() {
       if (reservation.status !== 'pending' && reservation.status !== 'using') {
-        candidateBox.replaceChildren(h('p', { class: 'small muted' }, '暂离中或终态预约不能换座。'));
+        candidateBox.replaceChildren(h('p', { class: 'small muted' }, reservation.status === 'away' ? '请先返回座位，再申请换座。' : '预约已结束，无法换座。'));
         return;
       }
-      candidateBox.replaceChildren(h('p', { class: 'muted small' }, '正在查询同房间替代座位…'));
+      candidateBox.replaceChildren(h('p', { class: 'muted small' }, '正在查询替代座位…'));
       try {
         const data = await api.get(`/reservations/${reservation.id}/swap-candidates?needPower=${needPower ? 'true' : 'false'}`);
         const heading = h('div', { class: 'row between' },
@@ -394,7 +394,7 @@ export async function renderMine(container, { navigate }) {
         }
         candidateBox.replaceChildren(
           heading,
-          h('p', { class: 'small muted' }, `剩余时段 ${timeRangeText(data.remaining.startText, data.remaining.endText)}；换座保留结束时间与签到截止，不新增额度。`),
+          h('p', { class: 'small muted' }, `剩余时段 ${timeRangeText(data.remaining.startText, data.remaining.endText)}`),
           h('div', { class: 'recommend-list' },
             data.candidates.map((candidate) => h('div', { class: 'recommend' },
               h('div', { class: 'top' },
@@ -406,7 +406,6 @@ export async function renderMine(container, { navigate }) {
                 ),
                 h('button', { class: 'btn sm primary', type: 'button', on: { click: () => confirmSwap(candidate) } }, '换到此座位'),
               ),
-              h('div', { class: 'reasons' }, candidate.reasons.join(' · ')),
             )),
           ),
         );
@@ -418,7 +417,7 @@ export async function renderMine(container, { navigate }) {
     async function confirmSwap(candidate) {
       const ok = await confirmDialog({
         title: '确认换座',
-        message: `将当前预约的剩余时段换至 ${candidate.seatCode}。换座失败时保留原座位；原现场问题继续由管理员处理。`,
+        message: `换到 ${candidate.seatCode}？换座失败将保留仍有效的原预约。`,
         confirmText: '确认换座',
       });
       if (!ok) return;
@@ -431,12 +430,12 @@ export async function renderMine(container, { navigate }) {
           { idempotencyKey: swapKey },
         );
         swapKeys.delete(candidate.seatId);
-        toast(`换座成功，新座位 ${result.reservation.seatCode}`);
+        toast(`已换到 ${result.reservation.seatCode}，现场问题将继续处理`);
         dialog.close();
         await load();
       } catch (err) {
         if (err.status !== 0) swapKeys.delete(candidate.seatId);
-        error.textContent = err.status === 0 ? `${err.message}；网络恢复后可重试，系统会按原操作键返回同一结果。` : (err.message || '换座失败');
+        error.textContent = err.status === 0 ? '换座结果待确认，请在网络恢复后重试。' : (err.message || '换座失败');
       }
     }
 
@@ -461,12 +460,12 @@ export async function renderMine(container, { navigate }) {
           { idempotencyKey: apiKey },
         );
         siteIssueKey = null;
-        toast('现场问题已提交，可在本窗口查看处理进度');
+        toast('现场问题已提交');
         description.value = '';
         await refreshProgress();
       } catch (err) {
         if (err.status !== 0) siteIssueKey = null;
-        error.textContent = err.status === 0 ? `${err.message}；可重试，系统不会重复创建问题。` : (err.message || '提交失败');
+        error.textContent = err.status === 0 ? '提交结果待确认，请在网络恢复后重试。' : (err.message || '提交失败');
       } finally {
         submitBtn.disabled = false;
       }
@@ -477,7 +476,7 @@ export async function renderMine(container, { navigate }) {
       wide: true,
       body: h('div', { class: 'stack' },
         h('div', { class: 'notice' },
-          `${reservation.roomName} ${reservation.seatCode} · ${timeWindowText(reservation)}。报告问题不会处罚他人，也不会自动改变座位状态；管理员将现场核实。`),
+          `${reservation.roomName} ${reservation.seatCode} · ${timeWindowText(reservation)}`),
         h('div', { class: 'form-grid' },
           h('div', { class: 'field' }, h('label', {}, '问题类型'), type),
           inputField('现场情况', description, { wide: true }),
@@ -504,7 +503,7 @@ export async function renderMine(container, { navigate }) {
     const active = state.overview?.active || [];
     if (!active.length) {
       return h('section', { class: 'card' }, h('div', { class: 'card-body' },
-        emptyState('没有进行中的预约', '选择座位并提交预约后，可在此签到、暂离、签退或取消。',
+        emptyState('没有进行中的预约', '',
           h('button', { class: 'btn primary', type: 'button', on: { click: () => navigate('/book') } }, '去预约座位')),
       ));
     }
@@ -518,8 +517,7 @@ export async function renderMine(container, { navigate }) {
       ),
       h('div', { class: 'meta' },
         h('span', {}, `时段 ${timeRangeText(r.startText, r.endText)}`),
-        h('span', {}, `签到截止 ${r.checkinDeadlineText}`),
-                r.status === 'pending' ? h('span', {}, '请在签到截止前扫码签到') : null,
+        r.status === 'pending' ? h('span', {}, `签到截止 ${r.checkinDeadlineText}`) : null,
         r.status === 'away' ? h('span', {}, '暂离中，请在保留截止前返回') : null,
       ),
       h('div', { class: 'record-actions' }, activeActions(r)),
@@ -589,7 +587,7 @@ export async function renderMine(container, { navigate }) {
     const items = state.overview?.unpaidEvaluation || [];
     if (!items.length) {
       return h('section', { class: 'card' }, h('div', { class: 'card-body' },
-        emptyState('暂无待评价的预约', '已签到并完成的预约可提交一条评价，修改会保留历史。')));
+        emptyState('暂无待评价的预约', '已签到并完成的预约可评价。')));
     }
     return h('div', { class: 'list' }, items.map((r) => h('article', { class: 'record' },
       h('div', { class: 'record-top' },
@@ -610,7 +608,6 @@ export async function renderMine(container, { navigate }) {
       h('header', { class: 'page-head' },
         h('div', {},
           h('h1', {}, '我的预约'),
-          h('p', {}, '管理本人预约、签到签退、暂离与现场问题。'),
         ),
         h('div', { class: 'head-actions' },
           h('button', { class: 'btn sm', type: 'button', on: { click: load }, disabled: state.busy }, icon('refresh'), '刷新'),
@@ -620,10 +617,10 @@ export async function renderMine(container, { navigate }) {
       renderRestriction(),
       overview
         ? h('div', { class: 'metrics' },
-          h('div', { class: 'metric' }, h('div', { class: 'label' }, '进行中'), h('div', { class: 'value' }, overview.active.length), h('div', { class: 'sub' }, '待签到 / 使用中 / 暂离中')),
-          h('div', { class: 'metric' }, h('div', { class: 'label' }, '已完成'), h('div', { class: 'value' }, overview.counts.completed), h('div', { class: 'sub' }, '含本人签退与到期结束')),
-          h('div', { class: 'metric' }, h('div', { class: 'label' }, '已违约'), h('div', { class: 'value' }, overview.counts.noShow), h('div', { class: 'sub' }, '生成待复核事件')),
-          h('div', { class: 'metric' }, h('div', { class: 'label' }, '待评价'), h('div', { class: 'value' }, overview.unpaidEvaluation.length), h('div', { class: 'sub' }, '已签到且已完成')),
+          h('div', { class: 'metric' }, h('div', { class: 'label' }, '进行中'), h('div', { class: 'value' }, overview.active.length)),
+          h('div', { class: 'metric' }, h('div', { class: 'label' }, '已完成'), h('div', { class: 'value' }, overview.counts.completed)),
+          h('div', { class: 'metric' }, h('div', { class: 'label' }, '已违约'), h('div', { class: 'value' }, overview.counts.noShow)),
+          h('div', { class: 'metric' }, h('div', { class: 'label' }, '待评价'), h('div', { class: 'value' }, overview.unpaidEvaluation.length)),
         )
         : null,
       h('div', { class: 'segmented' },
@@ -635,10 +632,6 @@ export async function renderMine(container, { navigate }) {
       ),
       !overview && state.busy ? h('div', { class: 'card' }, h('div', { class: 'card-body' }, h('p', { class: 'muted' }, '正在加载…'))) : null,
       state.tab === 'active' ? renderActive() : state.tab === 'history' ? renderHistory() : renderUnpaid(),
-      h('div', { class: 'notice' },
-        '签到需在签到窗口内完成。',
-        h('button', { class: 'link-btn', type: 'button', on: { click: () => navigate('/records') } }, '查看违约与限制记录 →'),
-      ),
     );
   }
 

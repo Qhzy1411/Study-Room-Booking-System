@@ -143,8 +143,8 @@ export function navigate(path, { replace = false } = {}) {
 
 function loginPage(errorMessage = '') {
   clear(appEl);
-  const username = h('input', { id: 'login-username', type: 'text', autocomplete: 'username', placeholder: '请输入账号，例如 u01' });
-  const password = h('input', { id: 'login-password', type: 'password', autocomplete: 'current-password', placeholder: '请输入密码' });
+  const username = h('input', { id: 'login-username', type: 'text', autocomplete: 'username' });
+  const password = h('input', { id: 'login-password', type: 'password', autocomplete: 'current-password' });
   const error = h('p', { class: 'auth-error', role: 'alert' }, errorMessage);
   const submit = h('button', { class: 'btn primary block', type: 'submit' }, '登录');
 
@@ -179,7 +179,6 @@ function loginPage(errorMessage = '') {
     },
   },
   h('h2', {}, '登录'),
-  h('p', { class: 'lead' }, '使用教学账号访问预约、到座与管理功能。'),
   inputField('账号', username),
   inputField('密码', password),
   error,
@@ -188,16 +187,15 @@ function loginPage(errorMessage = '') {
     h('h3', {}, '演示账号（密码均为 123456）'),
     h('div', { class: 'demo-btns' },
       [
-        ['u01', '学生 · 俞烨涛', '预约、签到、投诉与评价'],
-        ['m1', '场地管理员 · 金施成', '仅管理图书馆二层'],
-        ['m2', '场地管理员 · 钱瑾', '仅管理图书馆三层'],
-        ['s1', '系统管理员 · 刘洁', '账号、规则、业务复核与统计'],
-      ].map(([name, label, desc]) => h('button', {
+        ['u01', '学生'],
+        ['m1', '二层场地管理员'],
+        ['m2', '三层场地管理员'],
+        ['s1', '系统管理员'],
+      ].map(([name, label]) => h('button', {
         type: 'button',
         on: { click: () => { username.value = name; password.value = '123456'; doLogin(name, '123456'); } },
-      }, h('strong', {}, label), h('span', { class: 'muted' }, `${name} · ${desc}`))),
+      }, h('strong', {}, label), h('span', { class: 'muted' }, name))),
     ),
-    h('p', { class: 'tiny muted', style: { marginTop: '10px' } }, '演示数据为合成数据；业务权限可在系统管理页分配。'),
   ),
   );
 
@@ -206,18 +204,8 @@ function loginPage(errorMessage = '') {
       h('div', { class: 'auth-visual' },
         h('div', { class: 'auth-brand' },
           h('span', { class: 'brand-mark' }, icon('logo')),
-          h('span', {}, '静阅 · 智慧自习室'),
+          h('h1', {}, '静阅 · 智慧自习室'),
         ),
-        h('div', { class: 'auth-copy' },
-          h('h1', {}, '找到合适的位置，', h('br'), '安心坐下学习。'),
-          h('p', {}, '按必要条件筛选座位，理解推荐理由；到座有路线，现场有问题有处理，使用结果可追溯。'),
-          h('div', { class: 'auth-points' },
-            h('div', {}, icon('compass'), h('span', {}, '预约与到座导引联动，选择入口即可查看沿通道的可达路线。')),
-            h('div', {}, icon('grid'), h('span', {}, '必要设施与偏好分开处理，设施故障同步影响筛选与推荐。')),
-            h('div', {}, icon('shield'), h('span', {}, '签到、停用、复核与投诉均有明确状态和记录，不静默改变历史。')),
-          ),
-        ),
-        h('div', { class: 'auth-foot' }, '需求规格 V2.5.6 · 课程实验项目 · 业务时间按北京时间计算'),
       ),
       h('div', { class: 'auth-panel' }, form),
     ),
@@ -301,14 +289,7 @@ function renderShell() {
         on: { click: () => closeMenu() },
       }, icon(item.icon), h('span', {}, item.label)))),
     )),
-    h('div', { class: 'sidebar-foot' },
-      h('div', {}, h('strong', {}, ROLE_LABEL[user.role])),
-      user.role === 'venue_admin'
-        ? h('div', {}, `授权场地：${user.grants.length ? grantsText(user) : '暂无'}`)
-        : null,
-      h('div', {}, '业务时间：北京时间'),
-      h('div', {}, '状态：已登录'),
-    ),
+    h('div', { class: 'sidebar-foot' }, '时间均为北京时间'),
   );
 
   const main = h('main', { class: 'main', id: 'main' });

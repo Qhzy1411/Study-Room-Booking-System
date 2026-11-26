@@ -83,7 +83,7 @@ export async function renderGuide(container, { navigate, params }) {
     const r = selectedReservation();
     if (!r) return null;
     if (loading) {
-      return h('section', { class: 'card' }, h('div', { class: 'card-body' }, h('p', { class: 'muted' }, '正在计算可通行路线…')));
+      return h('section', { class: 'card' }, h('div', { class: 'card-body' }, h('p', { class: 'muted' }, '正在加载路线…')));
     }
     if (errorMessage) {
       return h('section', { class: 'card' }, h('div', { class: 'card-body' },
@@ -97,7 +97,7 @@ export async function renderGuide(container, { navigate, params }) {
     if (!routeData) return null;
     if (!routeData.available) {
       return h('section', { class: 'card' },
-        h('div', { class: 'card-head' }, h('h2', {}, '到座路线'), h('span', { class: 'badge amber plain' }, '地图或路线不可用')),
+        h('div', { class: 'card-head' }, h('h2', {}, '到座路线')),
         h('div', { class: 'card-body stack' }, renderFallback()),
       );
     }
@@ -150,12 +150,6 @@ export async function renderGuide(container, { navigate, params }) {
           h('dt', {}, '时段'), h('dd', {}, timeRangeText(r.startText, r.endText)),
           h('dt', {}, '签到截止'), h('dd', {}, r.checkinDeadlineText),
         ),
-        h('div', { class: 'notice' },
-          r.status === 'pending'
-            ? '尚未签到。请在签到窗口内扫描桌面二维码。'
-            : r.status === 'away'
-              ? '当前处于暂离中，请在保留截止前返回座位。'
-              : '使用中，可返回“我的预约”签退。'),
         h('div', { class: 'row' },
           h('button', { class: 'btn block', type: 'button', on: { click: () => navigate('/mine') } }, '返回我的预约'),
         ),
@@ -170,13 +164,11 @@ export async function renderGuide(container, { navigate, params }) {
       h('header', { class: 'page-head' },
         h('div', {},
           h('h1', {}, '到座导航'),
-          h('p', {}, '选择入口，前往预约座位。'),
         ),
-        h('div', { class: 'head-actions' }),
       ),
       !active.length && !loading
         ? h('section', { class: 'card' }, h('div', { class: 'card-body' },
-          emptyState('当前没有可导航的预约', '待签到、使用中或暂离中的预约可以查看到座路线。',
+          emptyState('没有可导航的预约', '',
             h('button', { class: 'btn primary', type: 'button', on: { click: () => navigate('/book') } }, '去预约座位')),
         ))
         : h('div', { class: 'split wide' },
