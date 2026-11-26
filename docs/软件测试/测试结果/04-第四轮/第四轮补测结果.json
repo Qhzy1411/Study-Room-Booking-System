@@ -1,0 +1,281 @@
+{
+  "started": "2026-11-26T07:12:40.504Z",
+  "node": "v24.22.3",
+  "items": [
+    {
+      "id": "F05",
+      "method": "授权场地正常查询＋代码核对",
+      "observations": {
+        "grants": [
+          "R1"
+        ],
+        "authorizedStatus": 200,
+        "authorizedRows": 1,
+        "roomScopePassedToList": false,
+        "unauthorizedRequestRun": false
+      }
+    },
+    {
+      "id": "F06",
+      "method": "有效选座请求＋界面正常输入防错",
+      "observations": {
+        "completeQuery": 200,
+        "reversedTimes": "页面提示结束时间必须晚于开始时间",
+        "bindingTypeErrorMappedTo": 500,
+        "missingParameter500": "未向接口发送缺参请求"
+      }
+    },
+    {
+      "id": "F07",
+      "method": "业务复核授权正例＋查询分支核对",
+      "observations": {
+        "canReview": true,
+        "authorizedQueries": {
+          "violations": 200,
+          "faults": 200
+        },
+        "unauthorizedRequestRun": false
+      }
+    },
+    {
+      "id": "F15",
+      "method": "有效依据创建限制＋数据核对",
+      "observations": {
+        "status": 200,
+        "basisRows": 1,
+        "uiUsesSet": true,
+        "constraintErrorMappedTo": 500,
+        "duplicateSubmissionRun": false
+      }
+    },
+    {
+      "id": "F16",
+      "method": "正常无会话及有会话对照＋解析逻辑核对",
+      "observations": {
+        "healthWithoutCookie": 200,
+        "normalBrowserSession": 200,
+        "decoderErrorMappedTo": 500,
+        "malformedCookieSent": false
+      }
+    },
+    {
+      "id": "F17",
+      "method": "页面支持的最长投诉说明正常提交＋请求上限配置核对",
+      "observations": {
+        "visibleFormMax": true,
+        "acceptedCharacters": 2000,
+        "status": 201,
+        "parserLimit": "256kb",
+        "parser413MappedTo": 500,
+        "oversizedRequestSent": false
+      }
+    },
+    {
+      "id": "F20",
+      "method": "浏览器模拟相机连续识别；拦截签到请求并模拟识别错误",
+      "observations": {
+        "observationMs": 1300,
+        "retriesWithoutUserAction": 5,
+        "requestsAfterClose": 0,
+        "realCheckinRequests": 0
+      }
+    },
+    {
+      "id": "F14",
+      "method": "管理员正常辅助签到及数据库回读",
+      "observations": {
+        "status": 200,
+        "stored": {
+          "method": "admin_assist",
+          "note": "已核对本人和桌号"
+        },
+        "bindingTypeErrorMappedTo": 500,
+        "nonTextNoteSent": false
+      }
+    },
+    {
+      "id": "F22",
+      "method": "同一浏览器正常换用两个合成账号，仅观察非个人的同意勾选",
+      "observations": {
+        "firstInitial": false,
+        "firstBeforeLogout": true,
+        "secondInitial": true,
+        "afterNewSeat": false,
+        "personalDataExposureTested": false
+      }
+    },
+    {
+      "id": "F24",
+      "method": "对照同一个新建场地管理员的配置值与登录资料",
+      "observations": {
+        "stored": {
+          "can_stats": 0,
+          "can_review": 0
+        },
+        "sessionProfile": {
+          "canStats": true,
+          "canReview": false
+        },
+        "grants": [
+          "R1"
+        ],
+        "ungrantedBusinessDataRequested": false
+      }
+    },
+    {
+      "id": "F25",
+      "method": "独立配置加载、正常登录的 Cookie 属性、关闭演示模式启动对照",
+      "observations": {
+        "defaults": {
+          "demo": true,
+          "host": "127.0.0.1",
+          "builtInQrValue": true
+        },
+        "demoAfterExplicitOff": false,
+        "ownCodeButtonVisibleWithDemoOff": true,
+        "cookieFlags": {
+          "httpOnly": true,
+          "secure": false,
+          "sameSite": "Lax"
+        },
+        "realDeploymentInspected": false
+      }
+    },
+    {
+      "id": "F26",
+      "method": "逐项清点可取得的交付 ZIP 与桌面目录，比较压缩包内源文件哈希",
+      "observations": {
+        "zipName": "Study Room Booking System.zip",
+        "zipSha256": "25ef6f15153948eecb347ee7f3a6aa8af928cadeba557220f415e5051af8a829",
+        "inventory": {
+          ".git": {
+            "zip": false,
+            "desktop": false
+          },
+          "coverage": {
+            "zip": false,
+            "desktop": false
+          },
+          "tests/practice": {
+            "zip": false,
+            "desktop": false
+          },
+          "data/studyroom.db": {
+            "zip": false,
+            "desktop": true
+          },
+          "data/studyroom.db-wal": {
+            "zip": false,
+            "desktop": true
+          },
+          "data/studyroom.db-shm": {
+            "zip": false,
+            "desktop": true
+          },
+          "LICENSE": {
+            "zip": false,
+            "desktop": false
+          }
+        },
+        "sourceComparison": {
+          "server/": {
+            "referenceFiles": 26,
+            "identical": 26,
+            "additionalInZip": 0
+          },
+          "public/": {
+            "referenceFiles": 21,
+            "identical": 21,
+            "additionalInZip": 0
+          },
+          "tests/": {
+            "referenceFiles": 11,
+            "identical": 11,
+            "additionalInZip": 0
+          }
+        },
+        "zipTotalFiles": 64
+      }
+    },
+    {
+      "id": "F27",
+      "method": "运行项目原有浏览器用例，并与本轮管理端实测对照",
+      "observations": {
+        "passed": 5,
+        "failed": 0,
+        "skipped": 1,
+        "tests": [
+          {
+            "name": "学生端各页面可加载且无脚本错误",
+            "status": "passed"
+          },
+          {
+            "name": "学生可通过界面完成预约并查看到座路线",
+            "status": "passed"
+          },
+          {
+            "name": "场地管理员页面可加载并显示统计快照",
+            "status": "passed"
+          },
+          {
+            "name": "系统管理员页面可加载账号、规则与审计",
+            "status": "passed"
+          },
+          {
+            "name": "390px 宽度下不产生页面级横向滚动",
+            "status": "passed"
+          },
+          {
+            "name": "未找到 Chrome/Edge，跳过浏览器测试",
+            "status": "skipped"
+          }
+        ],
+        "coverageIncludes": [
+          "server/time.js",
+          "public/js/api.js",
+          "public/js/state.js",
+          "public/js/util.js",
+          "public/js/seatmap.js",
+          "public/js/charts.js"
+        ],
+        "missingScenariosObservedInBusinessRerun": [
+          {
+            "id": "F03",
+            "case": "登记后新增待复核事件",
+            "outcome": "differs_from_expected"
+          },
+          {
+            "id": "F04",
+            "case": "清场后提交",
+            "outcome": "differs_from_expected"
+          },
+          {
+            "id": "F13",
+            "case": "桌面二维码",
+            "outcome": "differs_from_expected"
+          },
+          {
+            "id": "F13",
+            "case": "现场预约",
+            "outcome": "differs_from_expected"
+          },
+          {
+            "id": "F13",
+            "case": "评价管理",
+            "outcome": "differs_from_expected"
+          }
+        ]
+      }
+    }
+  ],
+  "businessRerun": {
+    "started": "2026-11-26T07:09:06.965Z",
+    "finished": "2026-11-26T07:09:24.821Z",
+    "checks": 22,
+    "baseline": {
+      "filesPerProject": 64,
+      "differences": []
+    }
+  },
+  "finished": "2026-11-26T07:12:51.796Z"
+}
