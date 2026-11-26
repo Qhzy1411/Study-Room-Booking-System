@@ -21,6 +21,7 @@ const state = {
   tab: 'seats',
   detail: null,
   loading: true,
+  planMonth: '',
   liveDate: '',
   liveRows: null,
   qrSheet: null,
@@ -37,6 +38,7 @@ export async function renderAdminVenue(container, { navigate }) {
   const root = h('div', { class: 'stack-20' });
   container.append(root);
   state.liveDate = beijingDate();
+  state.planMonth = state.liveDate.slice(0, 7);
 
   async function loadRooms() {
     try {
@@ -58,7 +60,7 @@ export async function renderAdminVenue(container, { navigate }) {
     state.loading = true;
     renderAll();
     try {
-      state.detail = await api.get(`/admin/rooms/${state.roomId}`);
+      state.detail = await api.get(`/admin/rooms/${state.roomId}${qs({ planMonth: state.planMonth })}`);
       if (state.detail.seats?.length && !state.form.seatId) state.form.seatId = state.detail.seats[0].id;
       if (!state.form.startAt) state.form.startAt = timeInput(now());
       if (!state.form.endAt) state.form.endAt = timeInput(now() + 2 * 3600 * 1000);
@@ -217,6 +219,7 @@ export async function renderAdminVenue(container, { navigate }) {
         const result = await api.post(`/admin/rooms/${state.roomId}/plans`, {
           dateFrom: from.value, dateTo: to.value, start: start.value, end: end.value, note: note.value,
         });
+        state.planMonth = from.value.slice(0, 7);
         toast(`已发布 ${result.plans.length} 天开放计划`);
         await loadDetail();
       } catch (err) {
@@ -240,7 +243,16 @@ export async function renderAdminVenue(container, { navigate }) {
         ),
       ),
       h('div', { class: 'card' },
-        h('div', { class: 'card-head' }, h('h2', {}, `已发布计划（${plans.length}）`)),
+        h('div', { class: 'card-head' },
+          h('h2', {}, `已发布计划（${plans.length}）`),
+          h('label', { class: 'row' }, '查询月份', h('input', {
+            type: 'month', value: state.planMonth,
+            on: { change: (event) => {
+              state.planMonth = event.target.value || beijingDate().slice(0, 7);
+              loadDetail();
+            } },
+          })),
+        ),
         plans.length
           ? h('div', { class: 'table-wrap' }, h('table', { class: 'data' },
             h('thead', {}, h('tr', {}, h('th', {}, '日期'), h('th', {}, '开放时段'), h('th', {}, '备注'))),
@@ -250,7 +262,7 @@ export async function renderAdminVenue(container, { navigate }) {
               h('td', {}, plan.note || '—'),
             ))),
           ))
-          : h('div', { class: 'card-body' }, h('p', { class: 'muted' }, '该场地暂无开放计划，学生将无法预约。')),
+          : h('div', { class: 'card-body' }, h('p', { class: 'muted' }, '所选月份暂无已发布计划。')),
       ),
     );
   }
