@@ -31,6 +31,7 @@ async function newPage(viewport = { width: 1280, height: 900 }) {
 
 async function loginAs(page, base, index) {
   await page.goto(base);
+  await page.locator('.auth-showcase').waitFor({ state: 'visible' });
   await page.locator('.demo-btns button').nth(index).click();
   await page.locator('.nav a').first().waitFor({ state: 'visible', timeout: 15000 });
 }
@@ -91,6 +92,7 @@ describe.skipIf(!executablePath)('浏览器端到端冒烟（桌面与 390px 移
     await page.locator('aside .check input[type="checkbox"]').check();
     await page.getByRole('button', { name: '确认预约' }).click();
     await page.getByRole('heading', { name: '预约成功' }).waitFor({ timeout: 15000 });
+    expect(await page.locator('.modal').getByText('规则版本').count()).toBe(0);
     await page.getByRole('button', { name: '查看我的预约' }).click();
     await expectHeading(page, '我的预约');
     await page.getByText('A01').first().waitFor({ timeout: 15000 });
@@ -114,6 +116,10 @@ describe.skipIf(!executablePath)('浏览器端到端冒烟（桌面与 390px 移
     await page.waitForSelector('.subtabs');
     await clickNav(page, '投诉处理');
     await expectHeading(page, '投诉处理');
+    const complaintActions = await page.locator('.page-head .head-actions > *').evaluateAll((nodes) =>
+      nodes.map((node) => node.getBoundingClientRect().top));
+    expect(complaintActions).toHaveLength(2);
+    expect(Math.abs(complaintActions[0] - complaintActions[1])).toBeLessThan(10);
     await clickNav(page, '数据统计');
     await expectHeading(page, '数据统计');
     await page.waitForSelector('.metric .value', { timeout: 15000 });

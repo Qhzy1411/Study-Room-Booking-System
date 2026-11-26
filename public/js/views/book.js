@@ -222,8 +222,6 @@ export async function renderBook(container, { navigate }) {
             h('dd', {}, timeRangeText(reservation.startText, reservation.endText)),
             h('dt', {}, '签到截止'),
             h('dd', {}, reservation.checkinDeadlineText),
-            h('dt', {}, '规则版本'),
-            h('dd', {}, reservation.ruleVersionId),
           ),
           h('p', { class: 'notice' },
             '到座后扫描桌面二维码签到。',
