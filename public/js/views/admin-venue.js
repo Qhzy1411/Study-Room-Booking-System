@@ -18,6 +18,9 @@ const TABS = [
 const timeInput = (ts) => `${beijingDate(ts)}T${beijingTime(ts)}`;
 
 export async function renderAdminVenue(container, { navigate }) {
+  function newSuspensionForm() {
+    return { seatId: '', immediate: true, startAt: '', endAt: '', reason: '' };
+  }
   const state = {
     rooms: [],
     roomId: null,
@@ -32,7 +35,7 @@ export async function renderAdminVenue(container, { navigate }) {
     preview: null,
     cleared: false,
     includeExpired: false,
-    form: { seatId: '', immediate: true, startAt: '', endAt: '', reason: '' },
+    form: newSuspensionForm(),
   };
   let previewSequence = 0;
   function invalidatePreview() {
@@ -58,8 +61,11 @@ export async function renderAdminVenue(container, { navigate }) {
   }
 
   let detailRequest = 0;
+  let panelRequest = 0;
+  let panelError = '';
   async function loadDetail() {
     const request = ++detailRequest;
+    invalidatePreview();
     panelRequest++;
     panelError = '';
     if (!state.roomId) {
@@ -86,8 +92,6 @@ export async function renderAdminVenue(container, { navigate }) {
     await loadActivePanel();
   }
 
-  let panelRequest = 0;
-  let panelError = '';
   async function loadActivePanel() {
     const request = ++panelRequest;
     const roomId = state.roomId;
@@ -122,8 +126,7 @@ export async function renderAdminVenue(container, { navigate }) {
     state.liveRows = null;
     state.qrSheet = null;
     state.reviews = null;
-    invalidatePreview();
-    state.form = { seatId: '', immediate: true, startAt: '', endAt: '', reason: '' };
+    state.form = newSuspensionForm();
     loadDetail();
   }
 
@@ -224,6 +227,7 @@ export async function renderAdminVenue(container, { navigate }) {
 
   function renderPlans() {
     const plans = state.detail.plans || [];
+    const roomId = state.roomId;
     const from = h('input', { type: 'date', value: beijingDate() });
     const to = h('input', { type: 'date', value: beijingDate() });
     const start = h('input', { type: 'time', step: 900, value: '08:00' });
@@ -235,10 +239,12 @@ export async function renderAdminVenue(container, { navigate }) {
       submit.disabled = true;
       error.textContent = '';
       try {
-        const result = await api.post(`/admin/rooms/${state.roomId}/plans`, {
-          dateFrom: from.value, dateTo: to.value, start: start.value, end: end.value, note: note.value,
+        const dateFrom = from.value;
+        const result = await api.post(`/admin/rooms/${roomId}/plans`, {
+          dateFrom, dateTo: to.value, start: start.value, end: end.value, note: note.value,
         });
-        state.planMonth = from.value.slice(0, 7);
+        if (disposed || roomId !== state.roomId || state.tab !== 'plans') return;
+        state.planMonth = dateFrom.slice(0, 7);
         toast(`已发布 ${result.plans.length} 天开放计划`);
         await loadDetail();
       } catch (err) {
