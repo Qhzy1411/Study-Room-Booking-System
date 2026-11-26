@@ -25,6 +25,7 @@ export async function renderAdminComplaints(container, { navigate }) {
     detail: null,
     loading: true,
     reply: '',
+    occupancyUnfounded: false,
     busy: false,
   };
 
@@ -57,6 +58,7 @@ export async function renderAdminComplaints(container, { navigate }) {
       state.detail = (await api.get(`/admin/complaints/${id}`)).complaint;
       state.selectedId = id;
       state.reply = '';
+      state.occupancyUnfounded = false;
     } catch (error) {
       toast(error.message || '无法查看该投诉', 'error');
       state.detail = null;
@@ -91,7 +93,9 @@ export async function renderAdminComplaints(container, { navigate }) {
     state.busy = true;
     renderAll();
     try {
-      const result = await api.post(`/admin/complaints/${state.detail.id}/reply`, { body: state.reply.trim() });
+      const result = await api.post(`/admin/complaints/${state.detail.id}/reply`, {
+        body: state.reply.trim(), occupancyUnfounded: state.occupancyUnfounded,
+      });
       state.detail = result.complaint;
       state.reply = '';
       toast('答复已提交，学生将收到站内通知');
@@ -191,6 +195,13 @@ export async function renderAdminComplaints(container, { navigate }) {
                 on: { input: (event) => { state.reply = event.target.value; } },
               }),
             ),
+            c.isOccupancy ? h('label', { class: 'check' },
+              h('input', {
+                type: 'checkbox', checked: state.occupancyUnfounded, disabled: state.busy,
+                on: { change: (event) => { state.occupancyUnfounded = event.target.checked; } },
+              }),
+              h('span', { class: 'text' }, '核实占座不属实，结束签到保护'),
+            ) : null,
             h('div', { class: 'row' },
               h('button', { class: 'btn primary', type: 'button', disabled: state.busy, on: { click: reply } }, state.busy ? '提交中…' : '提交答复'),
               h('span', { class: 'tiny muted' }, '提交后学生可在已答复状态下补充材料或确认关闭。'),

@@ -2,8 +2,9 @@ import { all, get, nextId, run, tx } from '../db.js';
 import { now } from '../clock.js';
 import { badRequest, conflict, forbidden, notFound, unprocessable } from '../errors.js';
 import { audit } from '../audit.js';
-import { fmt } from '../time.js';
+import { fmt, MINUTE } from '../time.js';
 import { requireRoom, requireSeat, notify, reservationDto, isActiveStatus } from './shared.js';
+import { rejectOccupancyProtection } from './reservations.js';
 
 const TYPE_LABELS = {
   facility: '设施问题',
@@ -49,12 +50,13 @@ function complaintDto(row, { withEvents = true } = {}) {
     roomId: row.room_id,
     roomName: room?.name || row.room_id,
     type: row.type,
-    typeLabel: TYPE_LABELS[row.type] || row.type,
+    typeLabel: row.is_occupancy ? '座位被占用' : TYPE_LABELS[row.type] || row.type,
     description: row.description,
     reservationId: row.reservation_id,
     reservation: reservation ? reservationDto(reservation) : null,
     violationId: row.violation_id,
     isSite: !!row.is_site,
+    isOccupancy: !!row.is_occupancy,
     seatId: row.seat_id,
     seatCode: seat?.code || null,
     status: row.status,
@@ -127,8 +129,8 @@ function submitComplaint(user, payload) {
     const ts = now();
     const id = nextId('C', 'complaint', 4);
     run(
-      `INSERT INTO complaints (id, user_id, room_id, type, description, reservation_id, violation_id, is_site, seat_id, status, accused_id, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)`,
+      `INSERT INTO complaints (id, user_id, room_id, type, description, reservation_id, violation_id, is_site, is_occupancy, seat_id, status, accused_id, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)`,
       id,
       user.id,
       room.id,
@@ -137,6 +139,7 @@ function submitComplaint(user, payload) {
       reservation?.id || null,
       violation?.id || null,
       payload.isSite ? 1 : 0,
+      payload.isSite && payload.isOccupancy && type === 'service' ? 1 : 0,
       seat?.id || null,
       accusedId,
       ts,
@@ -227,6 +230,19 @@ function acceptComplaint(admin, id) {
       ts,
       id,
     );
+    if (row.is_occupancy) {
+      const reservation = get('SELECT * FROM reservations WHERE id = ?', row.reservation_id);
+      if (reservation?.status === 'pending' && reservation.seat_id === row.seat_id
+        && !reservation.checkin_protection_id && ts < reservation.checkin_deadline) {
+        const until = Math.min(ts + 30 * MINUTE, reservation.end_ts);
+        if (until > reservation.checkin_deadline) {
+          run('UPDATE reservations SET checkin_protection_id = ?, checkin_protected_until = ? WHERE id = ?',
+            id, until, reservation.id);
+          notify(row.user_id, `complaint.occupancy_protected:${id}`, 'complaint',
+            '座位占用报告已受理', `预约保留至 ${fmt(until)}，请在此之前签到或换座后签到。`);
+        }
+      }
+    }
     run(
       'INSERT INTO complaint_events (complaint_id, kind, author_id, body, created_at) VALUES (?, ?, ?, ?, ?)',
       id,
@@ -248,7 +264,7 @@ function acceptComplaint(admin, id) {
   });
 }
 
-function replyComplaint(admin, id, { body }) {
+function replyComplaint(admin, id, { body, occupancyUnfounded = false }) {
   return tx(() => {
     const row = get('SELECT * FROM complaints WHERE id = ?', id);
     if (!row) throw notFound('投诉不存在');
@@ -257,6 +273,7 @@ function replyComplaint(admin, id, { body }) {
     if (row.status !== 'processing') throw conflict(`该投诉当前状态为 ${STATUS_LABELS[row.status]}，不能答复`);
     const text = String(body || '').trim();
     if (!text) throw badRequest('答复须填写处理结果、依据及必要纠正');
+    if (occupancyUnfounded && !row.is_occupancy) throw badRequest('仅占座报告可标记为核实不属实');
     const ts = now();
     run(
       `UPDATE complaints SET status = 'answered', replied_at = ?, assignee_id = COALESCE(assignee_id, ?) WHERE id = ? AND status = 'processing'`,
@@ -278,9 +295,10 @@ function replyComplaint(admin, id, { body }) {
       objectType: 'complaint',
       objectId: id,
       before: { status: 'processing' },
-      after: { status: 'answered' },
+      after: { status: 'answered', ...(row.is_occupancy ? { occupancyUnfounded } : {}) },
       reason: text.slice(0, 200),
     });
+    if (occupancyUnfounded) rejectOccupancyProtection(row, ts);
     notify(
       row.user_id,
       `complaint.answered:${id}:${row.replied_at || 0}`,

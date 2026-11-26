@@ -374,6 +374,7 @@ router.post('/reservations/:id/site-issues', requireAuth, requireRole('student')
     description: String(req.body?.description || ''),
     reservationId: reservation.id,
     isSite: true,
+    ...(req.body?.isOccupancy === true ? { isOccupancy: true } : {}),
   };
   respondIdempotent(req, res, 'complaint.site_issue', { id: reservation.id, ...payload }, () =>
     submitComplaint(req.user, payload),
@@ -636,7 +637,9 @@ router.post('/admin/complaints/:id/accept', requireAuth, roleAdmin, route((req, 
 }));
 
 router.post('/admin/complaints/:id/reply', requireAuth, roleAdmin, route((req, res) => {
-  res.json(replyComplaint(req.user, req.params.id, { body: req.body?.body }));
+  res.json(replyComplaint(req.user, req.params.id, {
+    body: req.body?.body, occupancyUnfounded: req.body?.occupancyUnfounded === true,
+  }));
 }));
 
 router.get('/admin/evaluations', requireAuth, roleAdmin, route((req, res) => {
