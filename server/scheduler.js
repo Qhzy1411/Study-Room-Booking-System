@@ -1,13 +1,15 @@
 import config from './config.js';
+import { ensureDemoOpenPlans } from './seed.js';
 import { processDue } from './services/reservations.js';
 import { deliverPending, sendDueReminders } from './services/notifications.js';
 
 let timer = null;
 
-/** 后台任务：到期状态补处理与站内通知投递。所有转换按原业务时间判断，可重复执行。 */
+/** 后台任务：补齐演示排班、处理到期状态与投递站内通知。 */
 function startScheduler() {
   const tick = () => {
     try {
+      ensureDemoOpenPlans();
       const handled = processDue();
       sendDueReminders();
       const delivery = deliverPending();

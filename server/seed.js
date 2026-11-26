@@ -1,8 +1,14 @@
-import { db, get, run, tx, metaSet, nextId } from './db.js';
+import { db, get, run, tx, metaGet, metaSet, nextId } from './db.js';
 import { hashPassword } from './auth.js';
 import { buildLayout } from './roommap.js';
-import { now, syncToRealTime } from './clock.js';
+import { isDemo, now, syncToRealTime } from './clock.js';
 import { dateStr, addDaysLocal, parseDate, MINUTE } from './time.js';
+import { currentRule } from './services/shared.js';
+
+const DEMO_ROOM_PLANS = [
+  ['R1', 8 * 60, 22 * 60, '学期常规开放：08:00—22:00'],
+  ['R2', 9 * 60, 21 * 60, '学期常规开放：09:00—21:00'],
+];
 
 const TABLES = [
   'route_views',
@@ -156,14 +162,14 @@ function addRoom(ts, { id, name, building, floor, description, codes, faultyCode
   );
 }
 
-function addPlans(ts, roomId, fromDate, toDate, startMin, endMin, note) {
-  let version = 1;
-  for (let i = 0; ; i += 1) {
+function addPlans(ts, [roomId, startMin, endMin, note], fromDate, days) {
+  let version = (get('SELECT MAX(version) AS v FROM open_plans WHERE room_id = ?', roomId).v || 0) + 1;
+  for (let i = 0; i < days; i += 1) {
     const date = addDaysLocal(fromDate, i);
-    if (date > toDate) break;
-    run(
+    const { changes } = run(
       `INSERT INTO open_plans (room_id, date, start_min, end_min, version, note, created_by, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, 'M1', ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, 'M1', ?)
+       ON CONFLICT(room_id, date) DO NOTHING`,
       roomId,
       date,
       startMin,
@@ -172,8 +178,27 @@ function addPlans(ts, roomId, fromDate, toDate, startMin, endMin, note) {
       note,
       ts,
     );
-    version += 1;
+    version += changes;
   }
+}
+
+let demoPlanWindow;
+
+/** 仅为演示场地补齐当前预约窗口内尚未发布的开放计划。 */
+function ensureDemoOpenPlans(ts = now()) {
+  if (!isDemo()) return;
+  const today = dateStr(ts);
+  const days = currentRule(ts)?.advance_days;
+  const window = `${today}:${days}`;
+  if (!days || window === demoPlanWindow || !metaGet('seed_version')) return;
+  tx(() => {
+    for (const plan of DEMO_ROOM_PLANS) {
+      if (get('SELECT 1 FROM rooms WHERE id = ? AND archived = 0', plan[0])) {
+        addPlans(ts, plan, today, days);
+      }
+    }
+  });
+  demoPlanWindow = window;
 }
 
 function historyReservation({
@@ -343,7 +368,7 @@ function seedPerf(ts, today) {
       ts,
     );
   }
-  addPlans(ts, 'R3', addDaysLocal(today, -30), addDaysLocal(today, 6), 7 * 60, 22 * 60, '性能测试计划');
+  addPlans(ts, ['R3', 7 * 60, 22 * 60, '性能测试计划'], addDaysLocal(today, -30), 37);
   addUser(ts, {
     id: 'M3',
     username: 'perf_m3',
@@ -417,7 +442,6 @@ function seed({ reset = false, perf = false } = {}) {
   syncToRealTime();
   const today = dateStr(ts);
   const from = addDaysLocal(today, -7);
-  const to = addDaysLocal(today, 6);
 
   tx(() => {
     run(
@@ -494,8 +518,7 @@ function seed({ reset = false, perf = false } = {}) {
       codes: Array.from({ length: 8 }, (_, i) => `B${String(i + 1).padStart(2, '0')}`),
     });
 
-    addPlans(ts, 'R1', from, to, 8 * 60, 22 * 60, '学期常规开放：08:00—22:00');
-    addPlans(ts, 'R2', from, to, 9 * 60, 21 * 60, '学期常规开放：09:00—21:00');
+    for (const plan of DEMO_ROOM_PLANS) addPlans(ts, plan, from, 14);
 
     // 今日停用样例：A03 13:00—17:00 设施检修
     const todayStart = parseDate(today);
@@ -640,7 +663,7 @@ function seedIfEmpty() {
   }
 }
 
-export { seed, seedIfEmpty };
+export { seed, seedIfEmpty, ensureDemoOpenPlans };
 
 const isDirectRun = process.argv[1] && process.argv[1].replace(/\\/g, '/').endsWith('/server/seed.js');
 if (isDirectRun) {
