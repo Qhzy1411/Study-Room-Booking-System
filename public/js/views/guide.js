@@ -106,7 +106,7 @@ export async function renderGuide(container, { navigate, params }) {
       h('div', { class: 'card-head' },
         h('div', {},
           h('h2', {}, `前往 ${route.seatCode} 座位`),
-                  ),
+        ),
         h('div', { class: 'row' },
           h('span', { class: 'badge blue plain' }, `距离约 ${route.distanceMeters} 米`),
         ),
