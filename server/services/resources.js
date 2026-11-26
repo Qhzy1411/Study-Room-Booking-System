@@ -21,6 +21,20 @@ function planDto(plan) {
   };
 }
 
+/** 记录座位生效/归档时刻，供历史统计按当时生效的座位集合计算分母。 */
+function recordSeatStatus(seatId, roomId, status, atTs, actorId, reason) {
+  run(
+    `INSERT INTO seat_status_history (seat_id, room_id, status, changed_at, actor_id, reason)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    seatId,
+    roomId,
+    status,
+    atTs,
+    actorId,
+    reason,
+  );
+}
+
 function listRooms(user) {
   const rooms = all('SELECT * FROM rooms WHERE archived = 0 ORDER BY id');
   return rooms.map((room) => {
@@ -286,6 +300,7 @@ function createSeat(admin, payload) {
       payload.nearWindow ? 1 : 0,
       ts,
     );
+    recordSeatStatus(id, room.id, 'active', ts, admin.id, '创建座位');
     run(
       'INSERT INTO facilities (seat_id, kind, status, note, updated_by, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
       id,
@@ -323,7 +338,14 @@ function archiveSeat(admin, seatId, { reason, archived = true }) {
     if (archived && active > 0) {
       throw unprocessable('该座位仍有未结束的预约，请先按停用流程处理受影响预约');
     }
-    run('UPDATE seats SET archived = ? WHERE id = ?', archived ? 1 : 0, seatId);
+    const ts = now();
+    run(
+      'UPDATE seats SET archived = ?, archived_at = ? WHERE id = ?',
+      archived ? 1 : 0,
+      archived ? ts : null,
+      seatId,
+    );
+    recordSeatStatus(seatId, seat.room_id, archived ? 'archived' : 'active', ts, admin.id, String(reason).trim());
     audit({
       actor: admin,
       action: archived ? 'seat.archive' : 'seat.restore',

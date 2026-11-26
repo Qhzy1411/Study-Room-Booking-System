@@ -25,6 +25,7 @@ const TABLES = [
   'sessions',
   'facilities',
   'facility_history',
+  'seat_status_history',
   'seats',
   'open_plan_history',
   'open_plans',
@@ -98,6 +99,8 @@ function addRoom(ts, { id, name, building, floor, description, codes, faultyCode
     description,
     ts,
   );
+  // 演示数据包含近 7 天历史记录，座位生效起点须早于这些记录，避免历史分母被当成 0。
+  const seatCreatedAt = ts - 31 * 24 * 60 * MINUTE;
   const half = Math.ceil(codes.length / 2);
   for (let i = 0; i < codes.length; i += 1) {
     const code = codes[i];
@@ -108,7 +111,14 @@ function addRoom(ts, { id, name, building, floor, description, codes, faultyCode
       id,
       code,
       i < half ? 1 : 0,
-      ts,
+      seatCreatedAt,
+    );
+    run(
+      `INSERT INTO seat_status_history (seat_id, room_id, status, changed_at, actor_id, reason)
+       VALUES (?, ?, 'active', ?, 'M1', '演示数据：座位初始生效')`,
+      seatId,
+      id,
+      seatCreatedAt,
     );
     const faulty = faultyCodes.includes(code);
     run(
@@ -305,6 +315,7 @@ function seedPerf(ts, today) {
     '500 个座位与 1 万条历史预约，用于性能与统计验证；不配置二维地图。',
     ts,
   );
+  const seatCreatedAt = ts - 31 * 24 * 60 * MINUTE;
   for (let i = 1; i <= 500; i += 1) {
     const code = `P${String(i).padStart(3, '0')}`;
     const seatId = `R3-${code}`;
@@ -314,7 +325,13 @@ function seedPerf(ts, today) {
       'R3',
       code,
       i <= 250 ? 1 : 0,
-      ts,
+      seatCreatedAt,
+    );
+    run(
+      `INSERT INTO seat_status_history (seat_id, room_id, status, changed_at, actor_id, reason)
+       VALUES (?, 'R3', 'active', ?, 'M1', '性能数据：座位初始生效')`,
+      seatId,
+      seatCreatedAt,
     );
     run(
       'INSERT INTO facilities (seat_id, kind, status, note, updated_by, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
