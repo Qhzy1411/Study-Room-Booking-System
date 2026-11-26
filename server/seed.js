@@ -184,17 +184,19 @@ function addPlans(ts, [roomId, startMin, endMin, note], fromDate, days) {
 
 let demoPlanWindow;
 
-/** 仅为演示场地补齐当前预约窗口内尚未发布的开放计划。 */
+/** 为演示场地补齐最近七天和当前预约窗口内缺失的开放计划。 */
 function ensureDemoOpenPlans(ts = now()) {
   if (!isDemo()) return;
   const today = dateStr(ts);
   const days = currentRule(ts)?.advance_days;
   const window = `${today}:${days}`;
   if (!days || window === demoPlanWindow || !metaGet('seed_version')) return;
+  const historyDays = 6;
+  const from = addDaysLocal(today, -historyDays);
   tx(() => {
     for (const plan of DEMO_ROOM_PLANS) {
       if (get('SELECT 1 FROM rooms WHERE id = ? AND archived = 0', plan[0])) {
-        addPlans(ts, plan, today, days);
+        addPlans(ts, plan, from, historyDays + days);
       }
     }
   });

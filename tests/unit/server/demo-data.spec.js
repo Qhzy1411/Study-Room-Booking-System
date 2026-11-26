@@ -36,32 +36,50 @@ it.each([['R1', 'm1'], ['R2', 'm2']])('%s 初始化当天包含其他学生的�
   }
 });
 
-it('时钟跳到远处日期后可查询并预约，已有开放计划仍生效', async () => {
+it('时钟跳到远处日期后补齐前六天和预约窗口，并保留已有计划与预约', async () => {
   const past = addDaysLocal(today, -120);
   const future = addDaysLocal(today, 120);
   const lastDate = addDaysLocal(future, 6);
+  const firstDate = addDaysLocal(future, -6);
   const manager = createApiClient(server.base);
   await manager.login('m1');
-  const published = await manager.post('/admin/rooms/R1/plans', {
-    dateFrom: lastDate, start: '11:00', end: '18:00',
-  });
-  expect(published.status).toBe(200);
+  for (const date of [firstDate, lastDate]) {
+    const published = await manager.post('/admin/rooms/R1/plans', {
+      dateFrom: date, start: '11:00', end: '18:00', note: '临时排班',
+    });
+    expect(published.status).toBe(200);
+  }
 
   const availability = (roomId, date) => student.get(`/availability?roomId=${roomId}&date=${date}&start=11:00&end=12:00`);
+  const planFor = async (roomId, date) => (await availability(roomId, date)).json.openPlan;
+  const existingPlans = await Promise.all([firstDate, lastDate].map(date => planFor('R1', date)));
+  for (const plan of existingPlans) {
+    expect(plan).toMatchObject({ start: '11:00', end: '18:00', note: '临时排班' });
+  }
+
   expect((await availability('R2', past)).json.open).toBe(false);
   await setClock(sys, `${past} 08:00`);
-  expect((await availability('R2', past)).json.openPlan).toMatchObject({ start: '09:00', end: '21:00' });
+  expect(await planFor('R2', addDaysLocal(past, -6))).toMatchObject({ start: '09:00', end: '21:00' });
 
   await setClock(sys, `${future} 08:00`);
   const context = await bookingContext(student);
   expect(context.today).toBe(future);
   expect(context.dates.at(-1).date).toBe(lastDate);
-  expect((await availability('R1', future)).json.openPlan).toMatchObject({ start: '08:00', end: '22:00' });
-  expect((await availability('R1', lastDate)).json.openPlan).toMatchObject({ start: '11:00', end: '18:00' });
+  expect(await planFor('R1', future)).toMatchObject({ start: '08:00', end: '22:00' });
+  expect(await Promise.all([firstDate, lastDate].map(date => planFor('R1', date)))).toEqual(existingPlans);
+  const precedingDates = Array.from({ length: 6 }, (_, i) => addDaysLocal(firstDate, i));
+  const precedingPlans = await Promise.all(precedingDates.map(date => planFor('R2', date)));
+  expect(precedingPlans.map(plan => plan?.date)).toEqual(precedingDates);
+  expect(await planFor('R2', addDaysLocal(firstDate, -1))).toBeNull();
+
   const booked = await student.post('/reservations', {
     roomId: 'R2', seatId: 'R2-B01', date: lastDate, start: '11:00', end: '12:00',
   }, { key: key() });
   expect(booked.status).toBe(201);
+  await setClock(sys, `${past} 08:00`);
+  await setClock(sys, `${future} 08:00`);
+  const { json } = await availability('R2', lastDate);
+  expect(json.seats.find(seat => seat.id === 'R2-B01').state).toBe('occupied');
 });
 
 it('增大可提前预约天数后，新窗口的最后一天也有演示排班', async () => {
