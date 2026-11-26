@@ -82,6 +82,7 @@ function renderSiteIssue(){
  $('problemBooking').textContent=res?'预约 DEMO-R001 · 当前座位 '+(res.seat||'A01')+' · '+res.start+'—'+res.end:'请先创建预约。';
  $('problemForm').hidden=!!siteIssue||!activeReservation();
  const body=siteIssue?'<div class="record-main"><strong>现场问题 I001 · '+esc(siteIssue.type)+'</strong><span class="status">'+siteIssue.state+'</span></div><p>发生座位：'+siteIssue.seat+' · 关联预约：DEMO-R001</p><p>'+esc(siteIssue.text)+'</p><ul class="issue-history">'+siteIssue.entries.map(e=>'<li>'+esc(e)+'</li>').join('')+'</ul>':'<p>暂无现场问题。</p>';
+ $('occupancyFinding').hidden=siteIssue?.type!=='座位被占用'||siteIssue.state!=='处理中';
  $('siteIssueProgress').innerHTML=body;$('siteIssueAdmin').innerHTML=body;$('siteSupplementBox').hidden=siteIssue?.state!=='已答复';
  $('openRoute').hidden=!activeReservation();$('openProblem').hidden=!activeReservation();
 }
@@ -107,7 +108,7 @@ $('reserve').onclick=()=>{
  if(!userGuard())return;if(!selected||!$('agree').checked){say('请选择座位并阅读预约规则。',true);return;}
  if(res){say('已存在本次演示预约，请在我的预约查看结果。');return;}
  const day=$('day').value,s=dateMinute(day,$('start').value),e=dateMinute(day,$('end').value),range=bookingDates();
- if(!day||!Number.isFinite(s)||!Number.isFinite(e)||day<range.today||day>range.last||s<nowMin()||e<=s||e-s<30||e-s>240){say('请选择今天至未来6天内有效时段，每次30至240分钟，开始不早于当前时间。',true);return;}
+ if(!day||!Number.isFinite(s)||!Number.isFinite(e)||day<range.today||day>range.last||s<nowMin()||e<=s||e-s<30||e-s>840||s<dateMinute(day,'08:00')||e>dateMinute(day,'22:00')){say('请选择今天至未来6天内08:00—22:00的开放时段。每次至少30分钟，开始时间不能早于当前时间。',true);return;}
  if(!availableSeat(selectedSeatId,s,e)||$('race').checked){say('该时段座位不可预约，请重新选择。',true);return;}
  if($('bookNeedPower').checked&&seatInfo[selectedSeatId].power!=='正常'){say('该座位不满足可用插座要求，请更换座位或在选座条件中明确调整。',true);return;}
  const cutoff=Math.min(s+15,e);res={seat:selectedSeatId,originalSeat:selectedSeatId,day,start:$('start').value,end:$('end').value,s,e,cutoff,deadline:clockText(cutoff),state:'待签到',reason:'—',checked:false,version:1,needPower:$('bookNeedPower').checked,segments:[{seat:selectedSeatId,start:s,end:e}],swaps:[]};
@@ -169,8 +170,32 @@ $('confirmSwap').onclick=()=>{
  if($('swapLost').checked){$('confirmSwap').textContent='查询本次换座结果';say('响应暂未收到，请查询本次换座结果。');}else{$('swapDialog').close();say('换座成功，已更新到座路线；原问题继续处理。');}
 };
 $('saveFacility').onclick=()=>{if(!adminGuard())return;const reason=$('facilityReason').value.trim();if(!reason){say('请填写核实说明。',true);return;}const seat=$('facilitySeat').value;seatInfo[seat].power=$('facilityState').value;facilityRevision++;$('facilityResult').textContent=seat+' 插座'+seatInfo[seat].power+' · '+reason+' · '+clockStr();log('核实设施：'+seat+' 插座'+seatInfo[seat].power);say('设施状态已更新，相关选座结果同步调整。');};
-$('acceptSiteIssue').onclick=()=>{if(!complaintGuard())return;if(siteIssue?.state!=='待受理'){say('没有待受理现场问题。',true);return;}siteIssue.state='处理中';siteIssue.entries.push(clockStr()+' 管理员M1已受理');render();say('已受理现场问题。');};
-$('replySiteIssue').onclick=()=>{if(!complaintGuard())return;const t=$('siteReply').value.trim();if(siteIssue?.state!=='处理中'||!t){say('需要处理中问题及完整处理结果。',true);return;}siteIssue.state='已答复';siteIssue.entries.push(clockStr()+' M1答复：'+t);render();say('处理结果已保存。');};
+$('acceptSiteIssue').onclick=()=>{if(!complaintGuard())return;if(siteIssue?.state!=='待受理'){say('没有待受理现场问题。',true);return;}expiry();
+ siteIssue.state='处理中';
+ siteIssue.entries.push(clockStr()+' 管理员M1已受理');
+ const acceptedAt=nowMin();
+ if(siteIssue.type==='座位被占用' && res?.state==='待签到' && res.seat===siteIssue.seat && acceptedAt<res.cutoff){
+   res.originalCutoff=res.cutoff;
+   res.cutoff=Math.min(acceptedAt+30,res.e);
+   res.deadline=clockText(res.cutoff);
+   res.occupancyProtected=true;
+   siteIssue.entries.push('可在'+res.deadline+'前换座或签到');
+ }
+ render();say('已受理现场问题。');};
+$('replySiteIssue').onclick=()=>{if(!complaintGuard())return;const t=$('siteReply').value.trim();if(siteIssue?.state!=='处理中'||!t){say('需要处理中问题及完整处理结果。',true);return;}expiry();
+ if(siteIssue.type==='座位被占用' && $('unfoundedOccupancy').checked && res?.occupancyProtected){
+   res.occupancyProtected=false;
+   res.cutoff=res.originalCutoff;
+   res.deadline=clockText(res.cutoff);
+   if(res.protectionExpired){
+     res.state='已爽约';res.reason='占座报告不属实，爽约事件待复核';
+   }else{
+     expiry();
+   }
+   siteIssue.entries.push(clockStr()+' 已核实占座报告不属实，恢复原签到截止 '+res.deadline);
+ }
+ $('unfoundedOccupancy').checked=false;
+ siteIssue.state='已答复';siteIssue.entries.push(clockStr()+' M1答复：'+t);render();say('处理结果已保存。');};
 $('siteSupplement').onclick=()=>{if(!userGuard())return;const t=$('siteSupplementText').value.trim();if(siteIssue?.state!=='已答复'||!t){say('请填写补充说明。',true);return;}siteIssue.entries.push(clockStr()+' 学生补充：'+t);siteIssue.state='处理中';$('siteSupplementText').value='';render();};
 $('siteClose').onclick=()=>{if(!userGuard()||siteIssue?.state!=='已答复')return;siteIssue.state='已关闭';siteIssue.entries.push(clockStr()+' 学生确认关闭');render();};
 for(const id of ['start','end','day'])$(id).addEventListener('change',()=>{renderSeats();renderCandidates();});

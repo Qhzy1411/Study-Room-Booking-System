@@ -21,7 +21,9 @@ function render(){
  $('violationView').textContent='V001：'+violation+'；关联限制：'+(restricted?'有效':'已解除')+'。';$('manualView').textContent='新登记事件V002：'+manual+'。';
  $('reviewView').textContent=review?'当前评分：'+review.score+'；修改次数：'+review.edits+'；文字：'+review.text:'尚无评价。';
 }
-function expiry(){if(!res)return;const t=nowMin();if(res.state==='待签到'&&t>=res.cutoff){res.state='已爽约';res.reason='签到到期，事件待复核';log('自动爽约');}else if(res.state==='暂离中'&&res.leaveDeadline<res.e&&t>=res.leaveDeadline){res.state='异常关闭';res.reason='暂离超时，座位已释放';log('暂离超时');}else if(['使用中','暂离中'].includes(res.state)&&t>=res.e){res.state='已完成';res.reason='预约到期结束';log('到期结束');}}
+function expiry(){if(!res)return;const t=nowMin();if(res.state==='待签到'&&t>=res.cutoff){if(res.occupancyProtected){
+ res.state='已取消';res.reason='占座保护到期，座位已免罚释放';res.protectionExpired=true;log(res.reason);
+ }else{res.state='已爽约';res.reason='签到到期，事件待复核';log('自动爽约');}}else if(res.state==='暂离中'&&res.leaveDeadline<res.e&&t>=res.leaveDeadline){res.state='异常关闭';res.reason='暂离超时，座位已释放';log('暂离超时');}else if(['使用中','暂离中'].includes(res.state)&&t>=res.e){res.state='已完成';res.reason='预约到期结束';log('到期结束');}}
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{current=b.dataset.tab;document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id===current));document.querySelectorAll('[data-tab]').forEach(x=>x.setAttribute('aria-selected',x===b));if(current==='stats')refreshStats();});
 $('reset').onclick=()=>location.reload();$('query').onclick=()=>{say('座位状态已更新。');};
 $('reserve').onclick=()=>{if(!userGuard())return;if(!$('agree').checked){say('请先阅读并勾选规则。',true);return;}if(res){say('已查询到本次提交的预约DEMO-R001，未重复创建。');return;}const day=$('day').value,s=dateMinute(day,$('start').value),e=dateMinute(day,$('end').value),range=bookingDates();
@@ -30,11 +32,11 @@ $('reserve').onclick=()=>{if(!userGuard())return;if(!$('agree').checked){say('�
  if(s<nowMin()){say('开始时间已过去，请选择当前时间之后的时段。',true);return;}
  if(e<=s){say('结束时间须晚于开始时间，预约不可跨午夜。',true);return;}
  if(e-s<30){say('每次预约至少30分钟。',true);return;}
- if(e-s>240){say('每日预约累计最多240分钟，请缩短本次时段。',true);return;}
+ if(e-s>840){say('每日预约累计最多840分钟，请缩短本次时段。',true);return;}
  if(blockIntersects('A01',s,e)||$('race').checked){say('提交失败：该时段已停用或刚被其他用户预约。未创建新预约，请重新查询。',true);return;}
  const cutoff=Math.min(s+15,e),f=n=>String(n).padStart(2,'0');res={day:$('day').value,start:$('start').value,end:$('end').value,s,e,cutoff,deadline:clockText(cutoff),state:'待签到',reason:'—',checked:false};log('ST-01 创建DEMO-R001');say($('lost').checked?'响应暂未收到，请前往“我的预约”查看提交结果。':'预约成功：DEMO-R001；状态待签到。');};
-$('cancel').onclick=()=>{if(!userGuard())return;expiry();if(!res||res.state!=='待签到'||nowMin()>=res.s){say('当前状态或时间不允许取消；数据保持。',true);return;}res.state='已取消';res.reason='本人取消；额度不返还';log('ST-05 取消');say('取消成功，保留时段已释放。');};
-$('signout').onclick=()=>{if(!userGuard())return;expiry();if(!res||!['使用中','暂离中'].includes(res.state)){say('当前状态不能主动签退；未重复结束。',true);return;}res.state='已完成';res.reason='主动签退；剩余时段重新按规则开放';log('ST-09 主动签退');say('签退成功，剩余时段已释放；旧预约不能复活。');};
+$('cancel').onclick=()=>{if(!userGuard())return;expiry();if(!res||res.state!=='待签到'||nowMin()>=res.s){say('当前状态或时间不允许取消；数据保持。',true);return;}res.state='已取消';res.reason='本人取消，返还'+(res.e-res.s)+'分钟，仍计1次预约';log('ST-05 取消');say('取消成功，保留时段已释放。');};
+$('signout').onclick=()=>{if(!userGuard())return;expiry();if(!res||!['使用中','暂离中'].includes(res.state)){say('当前状态不能主动签退；未重复结束。',true);return;}res.state='已完成';res.reason='主动签退，返还'+Math.max(0,Math.floor(res.e-nowMin()))+'分钟，仍计1次预约';log('ST-09 主动签退');say('签退成功，剩余时段已释放；旧预约不能复活。');};
 const complaints=[];let complaintDraft=true,adminComplaintId=null;
 $('complain').onclick=()=>{if(!userGuard()||!complaintDraft)return;const t=$('complaintText').value.trim();if(!t){say('请填写问题说明。',true);return;}complaint={id:'C'+String(complaints.length+1).padStart(3,'0'),type:$('complaintType').value,text:t,state:'待受理',reply:'',supplements:[]};complaints.push(complaint);complaintDraft=false;if(!adminComplaintId)adminComplaintId=complaint.id;render();say('投诉 '+complaint.id+' 已提交。');};
 $('closeComplaint').onclick=()=>{if(!userGuard())return;if(!complaint||complaint.state!=='已答复'){say('仅已答复投诉允许确认关闭。',true);return;}complaint.state='已关闭';render();say('CT-05：投诉已关闭，记录保留。');};
