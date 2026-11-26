@@ -60,6 +60,8 @@ export async function renderAdminVenue(container, { navigate }) {
   let detailRequest = 0;
   async function loadDetail() {
     const request = ++detailRequest;
+    panelRequest++;
+    panelError = '';
     if (!state.roomId) {
       state.detail = null;
       state.loading = false;
@@ -81,38 +83,35 @@ export async function renderAdminVenue(container, { navigate }) {
       state.detail = null;
     }
     state.loading = false;
-    renderAll();
+    await loadActivePanel();
   }
 
-  async function loadLive() {
-    if (!state.roomId) return;
-    try {
-      const data = await api.get(`/admin/reservations${qs({ roomId: state.roomId, date: state.liveDate })}`);
-      if (disposed) return;
-      state.liveRows = data.reservations;
-    } catch (error) {
-      toast(error.message || '加载现场预约失败', 'error');
+  let panelRequest = 0;
+  let panelError = '';
+  async function loadActivePanel() {
+    const request = ++panelRequest;
+    const roomId = state.roomId;
+    panelError = '';
+    const panels = {
+      live: ['liveRows', () => api.get(`/admin/reservations${qs({ roomId, date: state.liveDate })}`).then(data => data.reservations)],
+      qr: ['qrSheet', () => api.get(`/admin/rooms/${roomId}/qr-sheet`)],
+      reviews: ['reviews', () => api.get(`/admin/evaluations${qs({ roomId })}`).then(data => data.evaluations)],
+    };
+    const panel = panels[state.tab];
+    if (!panel || !state.detail || state.loading) {
+      renderAll();
+      return;
     }
-    renderAll();
-  }
-
-  async function loadQr() {
-    try {
-      state.qrSheet = await api.get(`/admin/rooms/${state.roomId}/qr-sheet`);
-    } catch (error) {
-      toast(error.message || '加载二维码失败', 'error');
-    }
-    renderAll();
-  }
-
-  async function loadReviews() {
-    state.reviews = null;
+    const [field, fetchData] = panel;
+    state[field] = null;
     renderAll();
     try {
-      const data = await api.get(`/admin/evaluations?roomId=${encodeURIComponent(state.roomId)}`);
-      state.reviews = data.evaluations;
+      const value = await fetchData();
+      if (disposed || request !== panelRequest) return;
+      state[field] = value;
     } catch (error) {
-      toast(error.message || '加载评价失败', 'error');
+      if (disposed || request !== panelRequest) return;
+      panelError = error.message || '场地数据加载失败';
     }
     renderAll();
   }
@@ -129,11 +128,9 @@ export async function renderAdminVenue(container, { navigate }) {
   }
 
   function setTab(tab) {
+    if (state.tab !== tab) invalidatePreview();
     state.tab = tab;
-    renderAll();
-    if (tab === 'live' && !state.liveRows) loadLive();
-    if (tab === 'qr' && !state.qrSheet) loadQr();
-    if (tab === 'reviews') loadReviews();
+    loadActivePanel();
   }
 
   function facilityDialog(seat) {
@@ -494,9 +491,9 @@ export async function renderAdminVenue(container, { navigate }) {
       h('div', { class: 'card toolbar-card' },
         h('div', { class: 'field' }, h('label', {}, '日期'), h('input', {
           type: 'date', value: state.liveDate,
-          on: { change: (event) => { state.liveDate = event.target.value; state.liveRows = null; loadLive(); } },
+          on: { change: (event) => { state.liveDate = event.target.value; state.liveRows = null; loadActivePanel(); } },
         })),
-        h('button', { class: 'btn', type: 'button', on: { click: loadLive } }, icon('refresh'), '刷新'),
+        h('button', { class: 'btn', type: 'button', on: { click: loadActivePanel } }, icon('refresh'), '刷新'),
       ),
       !rows
         ? h('section', { class: 'card' }, h('div', { class: 'card-body' }, h('p', { class: 'muted' }, '正在加载…')))
@@ -558,7 +555,7 @@ export async function renderAdminVenue(container, { navigate }) {
       const result = await api.post(`/admin/reservations/${row.id}/assist-checkin`, { note });
       toast(result.alreadyCheckedIn ? '该预约已签到，无需重复操作' : '辅助签到成功');
       state.liveRows = null;
-      await loadLive();
+      await loadActivePanel();
     } catch (error) {
       toast(error.message || '辅助签到失败', 'error');
     }
@@ -596,7 +593,7 @@ export async function renderAdminVenue(container, { navigate }) {
                   try {
                     await api.post(`/admin/evaluations/${row.id}/hide`, { reason: reasonText, hidden });
                     toast(hidden ? '评价文字已隐藏' : '评价文字已恢复');
-                    await loadReviews();
+                    await loadActivePanel();
                   } catch (err) { toast(err.message, 'error'); }
                 } },
               }, row.visibility === 'hidden' ? '恢复文字' : '隐藏文字'),
@@ -636,6 +633,8 @@ export async function renderAdminVenue(container, { navigate }) {
       state.loading
         ? h('section', { class: 'card' }, h('div', { class: 'card-body' }, h('p', { class: 'muted' }, '正在加载场地信息…')))
         : !state.detail ? emptyState('场地详情加载失败', '请点击刷新重试。')
+          : panelError ? h('div', { class: 'notice', role: 'alert' }, panelError,
+            h('button', { type: 'button', class: 'btn sm', on: { click: loadActivePanel } }, '重试'))
           : state.tab === 'seats' ? renderSeats()
           : state.tab === 'plans' ? renderPlans()
             : state.tab === 'suspension' ? renderSuspension()
